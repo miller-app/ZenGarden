@@ -38,9 +38,9 @@ void MessageArcTangent2::processMessage(int inletIndex, PdMessage *message) {
   switch (inletIndex) {
     case 0: {
       if (message->isFloat(0)) {
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), atan2f(message->getFloat(0), constant));
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), atan2f(message->getFloat(0), constant));
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }

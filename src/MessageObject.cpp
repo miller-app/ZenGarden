@@ -58,26 +58,26 @@ void MessageObject::receiveMessage(int inletIndex, PdMessage *message) {
     // if the message should be distributed across the inlets
     int maxInletToDistribute = (message->getNumElements() < numMessageInlets)
         ? message->getNumElements() : numMessageInlets;
-    PdMessage *distributedMessage = PD_MESSAGE_ON_STACK(1);
+    PdMessage distributedMessage(1);
     for (int i = maxInletToDistribute-1; i >= 0; i--) { // send to right-most inlet first
       switch (message->getType(i)) {
         case FLOAT: {
-          distributedMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
+          distributedMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
           break;
         }
         case SYMBOL: {
-          distributedMessage->initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
+          distributedMessage.initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
           break;
         }
         case BANG: {
-          distributedMessage->initWithTimestampAndBang(message->getTimestamp());
+          distributedMessage.initWithTimestampAndBang(message->getTimestamp());
           break;
         }
         default: {
           break;
         }
       }
-      processMessage(i, distributedMessage);
+      processMessage(i, &distributedMessage);
     }
   } else {
     // otherwise just send the message through normally

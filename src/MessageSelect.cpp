@@ -45,9 +45,9 @@ void MessageSelect::processMessage(int inletIndex, PdMessage *message) {
       for (int i = 0; i < numSelectors; i++) {
         if (selectorMessage->atomIsEqualTo(i, messageElement)) {
           // send bang from matching outlet
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-          sendMessage(i, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+          sendMessage(i, &outgoingMessage);
           return;
         }
       }

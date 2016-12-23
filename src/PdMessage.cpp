@@ -23,6 +23,18 @@
 #include "PdMessage.h"
 #include "StaticUtils.h"
 
+PdMessage::PdMessage(int numElements)
+  : numElements(numElements), messageAtoms(numElements) {
+}
+
+PdMessage::~PdMessage() {
+  for (int i = 0; i < numElements; i++) {
+    if (isSymbol(i)) {
+      free(getSymbol(i));
+    }
+  }
+}
+
 void PdMessage::initWithSARb(unsigned int maxElements, char *initString, PdMessage *arguments,
     char *buffer, unsigned int bufferLength) {
   resolveString(initString, arguments, 0, buffer, bufferLength); // resolve string
@@ -125,14 +137,6 @@ void PdMessage::resolveString(char *initString, PdMessage *arguments, unsigned i
   }
 }
 
-PdMessage::~PdMessage() {
-  // nothing to do. Use freeMessage().
-}
-
-unsigned int PdMessage::numBytes() {
-  return PdMessage::numBytes(numElements);
-}
-
 void PdMessage::resolveSymbolsToType() {
   for (int i = 0; i < numElements; i++) {
     if (isSymbol(i)) {
@@ -159,7 +163,7 @@ int PdMessage::getNumElements() {
 }
 
 MessageAtom *PdMessage::getElement(unsigned int index) {
-  return (&messageAtom)+index;
+  return &messageAtoms[index];
 }
 
 bool PdMessage::atomIsEqualTo(unsigned int index, MessageAtom *messageAtom) {
@@ -188,7 +192,7 @@ double PdMessage::getTimestamp() {
 #pragma mark initWithTimestampeAnd
 
 void PdMessage::initWithTimestampAndNumElements(double aTimestamp, unsigned int numElem) {
-  memset(this, 0, numBytes(numElem)); // clear the entire contents of the message
+  messageAtoms = std::vector<MessageAtom>(numElem);
   timestamp = aTimestamp;
   numElements = numElem;
   setBang(0); // default value
@@ -218,7 +222,7 @@ void PdMessage::initWithTimestampAndSymbol(double aTimestamp, char *symbol) {
 
 bool PdMessage::isFloat(unsigned int index) {
   if (index < numElements) {
-    return ((&messageAtom)[index].type == FLOAT);
+    return (messageAtoms[index].type == FLOAT);
   } else {
     return false;
   }
@@ -226,7 +230,7 @@ bool PdMessage::isFloat(unsigned int index) {
 
 bool PdMessage::isSymbol(unsigned int index) {
   if (index < numElements) {
-    return ((&messageAtom)[index].type == SYMBOL);
+    return (messageAtoms[index].type == SYMBOL);
   } else {
     return false;
   }
@@ -234,7 +238,7 @@ bool PdMessage::isSymbol(unsigned int index) {
 
 bool PdMessage::isSymbol(unsigned int index, const char *test) {
   if (index < numElements) {
-    MessageAtom messageElement = (&messageAtom)[index];
+    MessageAtom messageElement = messageAtoms[index];
     if (messageElement.type == SYMBOL) {
       return !strcmp(messageElement.symbol, test);
     } else {
@@ -247,7 +251,7 @@ bool PdMessage::isSymbol(unsigned int index, const char *test) {
 
 bool PdMessage::isBang(unsigned int index) {
   if (index < numElements) {
-    return ((&messageAtom)[index].type == BANG);
+    return (messageAtoms[index].type == BANG);
   } else {
     return false;
   }
@@ -269,7 +273,7 @@ bool PdMessage::hasFormat(const char *format) {
 
 MessageElementType PdMessage::getType(unsigned int index) {
   if (index < numElements) {
-    return (&messageAtom)[index].type;
+    return messageAtoms[index].type;
   } else {
     return ANYTHING;
   }
@@ -280,44 +284,43 @@ MessageElementType PdMessage::getType(unsigned int index) {
 #pragma mark get/setElement
 
 float PdMessage::getFloat(unsigned int index) {
-  return (&messageAtom)[index].constant;
+  return messageAtoms[index].constant;
 }
 
 void PdMessage::setFloat(unsigned int index, float value) {
-  (&messageAtom)[index].type = FLOAT;
-  (&messageAtom)[index].constant = value;
+  messageAtoms[index].type = FLOAT;
+  messageAtoms[index].constant = value;
 }
 
 char *PdMessage::getSymbol(unsigned int index) {
-  return (&messageAtom)[index].symbol;
+  return messageAtoms[index].symbol;
 }
 
 void PdMessage::setSymbol(unsigned int index, char *symbol) {
-  (&messageAtom)[index].type = SYMBOL;
-  (&messageAtom)[index].symbol = symbol;
+  messageAtoms[index].type = SYMBOL;
+  messageAtoms[index].symbol = symbol;
 }
 
 void PdMessage::setBang(unsigned int index) {
-  (&messageAtom)[index].type = BANG;
-  (&messageAtom)[index].symbol = NULL;
+  messageAtoms[index].type = BANG;
+  messageAtoms[index].symbol = NULL;
 }
 
 void PdMessage::setAnything(unsigned int index) {
-  (&messageAtom)[index].type = ANYTHING;
-  (&messageAtom)[index].symbol = NULL;
+  messageAtoms[index].type = ANYTHING;
+  messageAtoms[index].symbol = NULL;
 }
 
 void PdMessage::setList(unsigned int index) {
-  (&messageAtom)[index].type = LIST;
-  (&messageAtom)[index].symbol = NULL;
+  messageAtoms[index].type = LIST;
+  messageAtoms[index].symbol = NULL;
 }
 
 
 #pragma mark - copy/free
 
 PdMessage *PdMessage::copyToHeap() {
-  PdMessage *pdMessage = (PdMessage *) malloc(numBytes());
-  memcpy(pdMessage, this, numBytes()); // copy entire structure (but symbol pointers must be replaced)
+  PdMessage *pdMessage = new PdMessage(*this);
   for (int i = 0; i < numElements; i++) {
     if (isSymbol(i)) {
       pdMessage->setSymbol(i, StaticUtils::copyString(getSymbol(i)));
@@ -332,9 +335,9 @@ void PdMessage::freeMessage() {
       free(getSymbol(i));
     }
   }
-  free(this);
+  
+  delete this;
 }
-
 
 #pragma mark -
 #pragma mark toString

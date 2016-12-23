@@ -36,10 +36,10 @@ MessagePowToDb::~MessagePowToDb() {
 
 void MessagePowToDb::processMessage(int inletIndex, PdMessage *message) {
   if (message->isFloat(0)) {
-    PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+    PdMessage outgoingMessage(1);
     float f = message->getFloat(0);
-    outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(),
+    outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(),
         (f <= 0.0f) ? 0.0f : 100.0f + 10.0f * log10f(f));
-    sendMessage(0, outgoingMessage);
+    sendMessage(0, &outgoingMessage);
   }
 }

@@ -57,11 +57,11 @@ PdGraph::PdGraph(PdMessage *initMessage, PdGraph *parentGraph, PdContext *contex
   // initialise the graph arguments
   this->graphId = graphId;
   int numInitElements = initMessage->getNumElements();
-  graphArguments = PD_MESSAGE_ON_STACK(numInitElements+1);
-  graphArguments->initWithTimestampAndNumElements(0.0, numInitElements+1);
-  graphArguments->setFloat(0, (float) graphId); // $0
-  memcpy(graphArguments->getElement(1), initMessage->getElement(0), numInitElements * sizeof(MessageAtom));
-  graphArguments = graphArguments->copyToHeap();
+  PdMessage graphArgumentsStack(numInitElements+1);
+  graphArgumentsStack.initWithTimestampAndNumElements(0.0, numInitElements+1);
+  graphArgumentsStack.setFloat(0, (float) graphId); // $0
+  memcpy(graphArgumentsStack.getElement(1), initMessage->getElement(0), numInitElements * sizeof(MessageAtom));
+  graphArguments = graphArgumentsStack.copyToHeap();
   name = graphName;
 }
 

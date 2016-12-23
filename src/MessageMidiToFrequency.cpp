@@ -36,9 +36,9 @@ MessageMidiToFrequency::~MessageMidiToFrequency() {
 
 void MessageMidiToFrequency::processMessage(int inletIndex, PdMessage *message) {
   if (message->isFloat(0)) {
-    PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+    PdMessage outgoingMessage(1);
     float value = 440.0f * powf(2.0f, (message->getFloat(0) - 69.0f) / 12.0f);
-    outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), value);
-    sendMessage(0, outgoingMessage);
+    outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), value);
+    sendMessage(0, &outgoingMessage);
   }
 }

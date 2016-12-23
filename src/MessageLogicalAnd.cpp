@@ -44,10 +44,10 @@ void MessageLogicalAnd::processMessage(int inletIndex, PdMessage *message) {
           // allow fallthrough
         }
         case BANG: {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(),
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(),
               (left == 0.0f || right == 0.0f) ? 0.0f : 1.0f);
-          sendMessage(0, outgoingMessage);
+          sendMessage(0, &outgoingMessage);
           break;
         }
         default: {

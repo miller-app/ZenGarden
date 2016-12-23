@@ -39,7 +39,7 @@ DspBang::~DspBang() {
 void DspBang::processDsp(DspObject *dspObject, int fromIndex, int toIndex) {
   DspBang *d = reinterpret_cast<DspBang *>(dspObject);
   // message will be automatically rescheduled for beginning of next block
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-  outgoingMessage->initWithTimestampAndBang(0.0);
-  d->graph->scheduleMessage(d, 0, outgoingMessage);
+  PdMessage outgoingMessage(1);
+  outgoingMessage.initWithTimestampAndBang(0.0);
+  d->graph->scheduleMessage(d, 0, &outgoingMessage);
 }

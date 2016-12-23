@@ -53,9 +53,9 @@ void MessageRoute::processMessage(int inletIndex, PdMessage *message) {
   } else {
     // construct a new message to send from the given outlet
     int numElements = message->getNumElements() - 1;
-    PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(numElements);
-    outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), numElements);
-    memcpy(outgoingMessage->getElement(0), message->getElement(1), numElements*sizeof(MessageAtom));
-    sendMessage(outletIndex, outgoingMessage);
+    PdMessage outgoingMessage(numElements);
+    outgoingMessage.initWithTimestampAndNumElements(message->getTimestamp(), numElements);
+    memcpy(outgoingMessage.getElement(0), message->getElement(1), numElements*sizeof(MessageAtom));
+    sendMessage(outletIndex, &outgoingMessage);
   }
 }

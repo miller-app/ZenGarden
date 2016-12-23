@@ -40,15 +40,15 @@ void MessageListSplit::processMessage(int inletIndex, PdMessage *message) {
         sendMessage(2, message);
       } else {
         int numElems = numElements-splitIndex;
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(numElems);
-        outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), numElems);
-        memcpy(outgoingMessage->getElement(0), message->getElement(splitIndex), numElems * sizeof(MessageAtom));
-        sendMessage(1, outgoingMessage);
+        PdMessage outgoingMessage(numElems);
+        outgoingMessage.initWithTimestampAndNumElements(message->getTimestamp(), numElems);
+        memcpy(outgoingMessage.getElement(0), message->getElement(splitIndex), numElems * sizeof(MessageAtom));
+        sendMessage(1, &outgoingMessage);
         
-        outgoingMessage = PD_MESSAGE_ON_STACK(splitIndex);
-        outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), splitIndex);
-        memcpy(outgoingMessage->getElement(0), message->getElement(0), splitIndex * sizeof(MessageAtom));
-        sendMessage(0, outgoingMessage);
+        outgoingMessage = PdMessage(splitIndex);
+        outgoingMessage.initWithTimestampAndNumElements(message->getTimestamp(), splitIndex);
+        memcpy(outgoingMessage.getElement(0), message->getElement(0), splitIndex * sizeof(MessageAtom));
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }

@@ -43,9 +43,9 @@ void MessageDiv::processMessage(int inletIndex, PdMessage *message) {
         float f = message->getFloat(0);
         if (f < 0.0f) f -= (constant-1.0f);
         float result = truncf(f/constant);
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), result);
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), result);
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }

@@ -36,10 +36,10 @@ MessageRmsToDb::~MessageRmsToDb() {
 
 void MessageRmsToDb::processMessage(int inletIndex, PdMessage *message) {
   if (message->isFloat(0)) {
-    PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+    PdMessage outgoingMessage(1);
     float f = message->getFloat(0);
-    outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(),
+    outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(),
         (f <= 0.0f) ? 0.0f : 20.0f * log10f(f * 100000.0f));
-    sendMessage(0, outgoingMessage); // send a message from outlet 0
+    sendMessage(0, &outgoingMessage); // send a message from outlet 0
   }
 }

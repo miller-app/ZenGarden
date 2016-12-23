@@ -270,8 +270,8 @@ list<DspObject *> DspObject::getProcessOrder() {
     }
     
     BufferPool *bufferPool = graph->getBufferPool();
-    PdMessage *dspAddInitMessage = PD_MESSAGE_ON_STACK(1);
-    dspAddInitMessage->initWithTimestampAndFloat(0, 0.0f);
+    PdMessage dspAddInitMessage(1);
+    dspAddInitMessage.initWithTimestampAndFloat(0, 0.0f);
     for (int i = 0; i < incomingDspConnections.size(); i++) {
       switch (incomingDspConnections[i].size()) {
         case 0: {
@@ -317,7 +317,7 @@ list<DspObject *> DspObject::getProcessOrder() {
             list<DspObject *> parentProcessList = rightOlPair.first->getProcessOrder();
             processList.splice(processList.end(), parentProcessList);
             
-            DspImplicitAdd *dspAdd = new DspImplicitAdd(dspAddInitMessage, getGraph());
+            DspImplicitAdd *dspAdd = new DspImplicitAdd(&dspAddInitMessage, getGraph());
             float *buffer = reinterpret_cast<DspObject *>(leftOlPair.first)->getDspBufferAtOutlet(leftOlPair.second);
             dspAdd->setDspBufferAtInlet(buffer, 0);
             bufferPool->releaseBuffer(buffer);

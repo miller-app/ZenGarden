@@ -44,12 +44,12 @@ void MessageSwap::processMessage(int inletIndex, PdMessage *message) {
           // allow fallthrough
         }
         case BANG: {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), left);
-          sendMessage(1, outgoingMessage); // send a message from outlet 1
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), left);
+          sendMessage(1, &outgoingMessage); // send a message from outlet 1
           
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), right);
-          sendMessage(0, outgoingMessage); // send a message from outlet 0
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), right);
+          sendMessage(0, &outgoingMessage); // send a message from outlet 0
           break;
         }
         default: {

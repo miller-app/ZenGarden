@@ -30,9 +30,9 @@ MessageObject *DspPhasor::newObject(PdMessage *initMessage, PdGraph *graph) {
 }
 
 DspPhasor::DspPhasor(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, graph) {  
-  PdMessage *message = PD_MESSAGE_ON_STACK(1);
-  message->initWithTimestampAndFloat(0.0, initMessage->isFloat(0) ? initMessage->getFloat(0) : 0.0f);
-  processMessage(0, message);
+  PdMessage message(1);
+  message.initWithTimestampAndFloat(0.0, initMessage->isFloat(0) ? initMessage->getFloat(0) : 0.0f);
+  processMessage(0, &message);
 
   processFunction = &processScalar;
   processFunctionNoMessage = &processScalar;

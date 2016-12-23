@@ -38,10 +38,10 @@ void MessageRemainder::processMessage(int inletIndex, PdMessage *message) {
   switch (inletIndex) {
     case 0: {
       if (message->isFloat(0)) {
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+        PdMessage outgoingMessage(1);
         float remainder = (constant == 0.0f) ? 0.0f : (float) ((int) message->getFloat(0) % constant);
-        outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), remainder);
-        sendMessage(0, outgoingMessage);
+        outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), remainder);
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }

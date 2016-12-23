@@ -52,9 +52,9 @@ void MessageTableRead::processMessage(int inletIndex, PdMessage *message) {
         float *buffer = table->getBuffer(&bufferLength);
         int index = (int) message->getFloat(0);
         if (index >= 0 && index < bufferLength) {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), buffer[index]);
-          sendMessage(0, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), buffer[index]);
+          sendMessage(0, &outgoingMessage);
         }
       }
       break;

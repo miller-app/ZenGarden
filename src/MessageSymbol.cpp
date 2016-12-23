@@ -56,9 +56,9 @@ void MessageSymbol::processMessage(int inletIndex, PdMessage *message) {
           // allow fallthrough
         }
         case BANG: {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), symbol);
-          sendMessage(0, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), symbol);
+          sendMessage(0, &outgoingMessage);
           break;
         }
         default: break;

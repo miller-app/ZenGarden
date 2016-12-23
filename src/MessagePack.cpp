@@ -30,11 +30,11 @@ MessageObject *MessagePack::newObject(PdMessage *initMessage, PdGraph *graph) {
 MessagePack::MessagePack(PdMessage *initMessage, PdGraph *graph) :
     MessageObject(initMessage->getNumElements(), 1, graph) {
   int numElements = initMessage->getNumElements();
-  PdMessage *message = PD_MESSAGE_ON_STACK(numElements);
-  message->initWithTimestampAndNumElements(0.0, numElements);
-  memcpy(message->getElement(0), initMessage->getElement(0), numElements*sizeof(MessageAtom));
-  message->resolveSymbolsToType();
-  outgoingMessage = message->copyToHeap();
+  PdMessage message(numElements);
+  message.initWithTimestampAndNumElements(0.0, numElements);
+  memcpy(message.getElement(0), initMessage->getElement(0), numElements*sizeof(MessageAtom));
+  message.resolveSymbolsToType();
+  outgoingMessage = message.copyToHeap();
 }
 
 MessagePack::~MessagePack() {

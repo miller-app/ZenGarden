@@ -36,17 +36,17 @@ void MessageListPrepend::processMessage(int inletIndex, PdMessage *message) {
       int numPrependElements = prependMessage->getNumElements();
       int numMessageElements = message->getNumElements();
       int numElements = numPrependElements + numMessageElements;
-      PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(numElements);
-      outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), numElements);
-      memcpy(outgoingMessage->getElement(0), prependMessage->getElement(0), numPrependElements * sizeof(MessageAtom));
-      memcpy(outgoingMessage->getElement(numPrependElements), message->getElement(0), numMessageElements * sizeof(MessageAtom));
-      sendMessage(0, outgoingMessage);
+      PdMessage outgoingMessage(numElements);
+      outgoingMessage.initWithTimestampAndNumElements(message->getTimestamp(), numElements);
+      memcpy(outgoingMessage.getElement(0), prependMessage->getElement(0), numPrependElements * sizeof(MessageAtom));
+      memcpy(outgoingMessage.getElement(numPrependElements), message->getElement(0), numMessageElements * sizeof(MessageAtom));
+      sendMessage(0, &outgoingMessage);
       break;
     }
     case 1: {
       // NOTE(mhroth): would be faster to copy in place rather than destroying and creating memory
       // can change if it becomes a problem
-      prependMessage->freeMessage();
+      delete prependMessage;
       prependMessage = message->copyToHeap();
       break;
     }

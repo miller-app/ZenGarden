@@ -77,10 +77,10 @@ void MessagePipe::processMessage(int inletIndex, PdMessage *message) {
         case BANG: {
           // copy the message, update the timestamp, schedule it to be sent later
           int numElements = message->getNumElements();
-          PdMessage *scheduledMessage = PD_MESSAGE_ON_STACK(numElements);
-          scheduledMessage->initWithTimestampAndNumElements(message->getTimestamp() + delayMs, numElements);
-          memcpy(scheduledMessage->getElement(0), message->getElement(0), numElements * sizeof(MessageAtom));
-          scheduledMessagesList.push_back(graph->scheduleMessage(this, 0, scheduledMessage));
+          PdMessage scheduledMessage(numElements);
+          scheduledMessage.initWithTimestampAndNumElements(message->getTimestamp() + delayMs, numElements);
+          memcpy(scheduledMessage.getElement(0), message->getElement(0), numElements * sizeof(MessageAtom));
+          scheduledMessagesList.push_back(graph->scheduleMessage(this, 0, &scheduledMessage));
           break;
         }
         default: {

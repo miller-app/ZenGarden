@@ -31,11 +31,11 @@ MessageUnpack::MessageUnpack(PdMessage *initMessage, PdGraph *graph) :
     MessageObject(1, (initMessage->getNumElements() < 2) ? 2 : initMessage->getNumElements(), graph) {
   if (initMessage->getNumElements() < 2) {
     // if unpack is not initialised with anything, assume two "anything" outputs
-    templateMessage = PD_MESSAGE_ON_STACK(2);
-    templateMessage->initWithTimestampAndNumElements(0.0, 2);
-    templateMessage->setAnything(0);
-    templateMessage->setAnything(1);
-    templateMessage = templateMessage->copyToHeap();
+    PdMessage templateMessageStack(2);
+    templateMessageStack.initWithTimestampAndNumElements(0.0, 2);
+    templateMessageStack.setAnything(0);
+    templateMessageStack.setAnything(1);
+    templateMessage = templateMessageStack.copyToHeap();
   } else {
     templateMessage = initMessage->copyToHeap();
     templateMessage->resolveSymbolsToType();
@@ -66,36 +66,36 @@ void MessageUnpack::processMessage(int inletIndex, PdMessage *message) {
   if (templateMessage->getNumElements() < message->getNumElements()) {
     numElements = templateMessage->getNumElements();
   }
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+  PdMessage outgoingMessage(1);
   for (int i = numElements-1; i >= 0; i--) {
     MessageElementType elementType = templateMessage->getType(i);
     if (elementType == message->getType(i) || elementType == ANYTHING) {
       switch (elementType) {
         case FLOAT: {
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
-          sendMessage(i, outgoingMessage);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
+          sendMessage(i, &outgoingMessage);
           break;
         }
         case SYMBOL: {
-          outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
-          sendMessage(i, outgoingMessage);
+          outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
+          sendMessage(i, &outgoingMessage);
           break;
         }
         case ANYTHING: {
           switch (message->getType(i)) {
             case FLOAT: {
-              outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
+              outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(i));
               break;
             }
             case SYMBOL: {
-              outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
+              outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(i));
               break;
             }
             default: {
               break;
             }
           }
-          sendMessage(i, outgoingMessage);
+          sendMessage(i, &outgoingMessage);
         }
         default: {
           break;

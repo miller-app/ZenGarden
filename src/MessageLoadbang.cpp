@@ -28,9 +28,9 @@ MessageObject *MessageLoadbang::newObject(PdMessage *initMessage, PdGraph *graph
 }
 
 MessageLoadbang::MessageLoadbang(PdGraph *graph) : MessageObject(0, 1, graph) {
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-  outgoingMessage->initWithTimestampAndBang(0.0);
-  graph->scheduleMessage(this, 0, outgoingMessage);
+  PdMessage outgoingMessage(1);
+  outgoingMessage.initWithTimestampAndBang(0.0);
+  graph->scheduleMessage(this, 0, &outgoingMessage);
 }
 
 MessageLoadbang::~MessageLoadbang() {

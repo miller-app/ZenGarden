@@ -55,9 +55,9 @@ void MessageLine::processMessage(int inletIndex, PdMessage *message) {
             
             // jump to the given value
             lastMessageTimestamp = message->getTimestamp();
-            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-            outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), currentValue);
-            sendMessage(0, outgoingMessage);
+            PdMessage outgoingMessage(1);
+            outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), currentValue);
+            sendMessage(0, &outgoingMessage);
           } else if (message->isSymbol(0, "stop")) {
             cancelPendingMessage();
           }
@@ -82,9 +82,9 @@ void MessageLine::processMessage(int inletIndex, PdMessage *message) {
             if (slope != 0.0f) {
               // send the current message (if the slope isn't flat)
               lastMessageTimestamp = message->getTimestamp();
-              PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-              outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), currentValue);
-              sendMessage(0, outgoingMessage);
+              PdMessage outgoingMessage(1);
+              outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), currentValue);
+              sendMessage(0, &outgoingMessage);
             }
           } else if (message->isSymbol(0, "set") && message->isFloat(1)) {
             cancelPendingMessage();
@@ -126,10 +126,10 @@ void MessageLine::sendMessage(int outletIndex, PdMessage *message) {
   currentValue = message->getFloat(0);
   if (slope > 0.0f) {
     if (currentValue < targetValue) {
-      pendingMessage = PD_MESSAGE_ON_STACK(1);
-      pendingMessage->initWithTimestampAndFloat(message->getTimestamp() + grainRate,
+      PdMessage pendingMessageStack(1);
+      pendingMessageStack.initWithTimestampAndFloat(message->getTimestamp() + grainRate,
           currentValue + slope * grainRate);
-      pendingMessage = graph->scheduleMessage(this, 0, pendingMessage);
+      pendingMessage = graph->scheduleMessage(this, 0, &pendingMessageStack);
     } else { // currentValue >= targetValue
       // in case the current value is greater than the target value, due to floating-point precision error
       currentValue = targetValue;
@@ -138,10 +138,10 @@ void MessageLine::sendMessage(int outletIndex, PdMessage *message) {
     }
   } else if (slope < 0.0f) {
     if (currentValue > targetValue) {
-      pendingMessage = PD_MESSAGE_ON_STACK(1);
-      pendingMessage->initWithTimestampAndFloat(message->getTimestamp() + grainRate,
+      PdMessage pendingMessageStack(1);
+      pendingMessageStack.initWithTimestampAndFloat(message->getTimestamp() + grainRate,
           currentValue + slope * grainRate);
-      pendingMessage = graph->scheduleMessage(this, 0, pendingMessage);
+      pendingMessage = graph->scheduleMessage(this, 0, &pendingMessageStack);
     } else { // currentValue <= targetValue
       currentValue = targetValue;
       message->setFloat(0, currentValue);

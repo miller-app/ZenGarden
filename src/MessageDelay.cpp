@@ -57,9 +57,9 @@ void MessageDelay::processMessage(int inletIndex, PdMessage *message) {
         case FLOAT:
         case BANG: {
           cancelScheduledMessageIfExists();
-          scheduledMessage = PD_MESSAGE_ON_STACK(1);
-          scheduledMessage->initWithTimestampAndBang(message->getTimestamp() + delayMs);
-          scheduledMessage = graph->scheduleMessage(this, 0, scheduledMessage);
+          PdMessage scheduledMessageStack(1);
+          scheduledMessageStack.initWithTimestampAndBang(message->getTimestamp() + delayMs);
+          scheduledMessage = graph->scheduleMessage(this, 0, &scheduledMessageStack);
           break;
         }
         default: {

@@ -45,9 +45,9 @@ void MessageModulus::processMessage(int inletIndex, PdMessage *message) {
           // allow fallthrough
         }
         case BANG: {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), lastOutput);
-          sendMessage(0, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), lastOutput);
+          sendMessage(0, &outgoingMessage);
           break;
         }
         default: {

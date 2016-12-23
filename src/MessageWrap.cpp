@@ -74,9 +74,9 @@ void MessageWrap::processMessage(int inletIndex, PdMessage *message) {
             value = value + range;
           }
         }
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), value);
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), value);
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }  

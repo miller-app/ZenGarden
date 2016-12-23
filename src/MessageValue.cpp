@@ -47,9 +47,9 @@ void MessageValue::processMessage(int inletIndex, PdMessage *message) {
       break;
     }
     case BANG: {
-      PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-      outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), graph->getValueForName(name));
-      sendMessage(0, outgoingMessage);
+      PdMessage outgoingMessage(1);
+      outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), graph->getValueForName(name));
+      sendMessage(0, &outgoingMessage);
       break;
     }
     default: break;

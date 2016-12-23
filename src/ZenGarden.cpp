@@ -42,9 +42,9 @@ ZGObject *zg_graph_add_new_object(PdGraph *graph, const char *objectString, floa
   char *objectLabel = strtok(objectStringCopy, " ;");
   char *initString = strtok(NULL, ";");
   char resolutionBuffer[256];
-  PdMessage *initMessage = PD_MESSAGE_ON_STACK(32);
-  initMessage->initWithSARb(32, initString, graph->getArguments(), resolutionBuffer, 256);
-  MessageObject *messageObject = graph->getContext()->newObject(objectLabel, initMessage, graph);
+  PdMessage initMessage(32);
+  initMessage.initWithSARb(32, initString, graph->getArguments(), resolutionBuffer, 256);
+  MessageObject *messageObject = graph->getContext()->newObject(objectLabel, &initMessage, graph);
   free(objectStringCopy);
   
   if (messageObject != NULL) {
@@ -150,10 +150,10 @@ void zg_context_delete(ZGContext *context) {
 }
 
 ZGGraph *zg_context_new_empty_graph(PdContext *context) {
-  PdMessage *initMessage = PD_MESSAGE_ON_STACK(0); // create an empty message to use for initialisation
-  initMessage->initWithTimestampAndNumElements(0.0, 0);
+  PdMessage initMessage(0); // create an empty message to use for initialisation
+  initMessage.initWithTimestampAndNumElements(0.0, 0);
   // the new graph has no parent graph and is created in the given context with a unique id
-  PdGraph *graph = new PdGraph(initMessage, NULL, context, context->getNextGraphId(), "zg_free");
+  PdGraph *graph = new PdGraph(&initMessage, NULL, context, context->getNextGraphId(), "zg_free");
   return graph;
 }
 
@@ -429,19 +429,19 @@ void zg_table_set_buffer(MessageObject *table, float *buffer, unsigned int n) {
 #pragma mark - Message
 
 ZGMessage *zg_message_new(double timetamp, unsigned int numElements) {
-  PdMessage *message = PD_MESSAGE_ON_STACK(numElements);
-  message->initWithTimestampAndNumElements(timetamp, numElements);
-  return message->copyToHeap();
+  PdMessage message(numElements);
+  message.initWithTimestampAndNumElements(timetamp, numElements);
+  return message.copyToHeap();
 }
 
 ZGMessage *zg_message_new_from_string(double timetamp, const char *initString) {
   unsigned int maxElements = (strlen(initString)/2)+1;
-  PdMessage *message = PD_MESSAGE_ON_STACK(maxElements);
+  PdMessage message(maxElements);
   // make a local copy of the initString so that strtok in initWithString won't break it
   char str[strlen(initString)+1]; strcpy(str, initString);
   // numElements set to correct number after string is parsed
-  message->initWithString(timetamp, maxElements, str);
-  return message->copyToHeap();
+  message.initWithString(timetamp, maxElements, str);
+  return message.copyToHeap();
 }
 
 void zg_message_delete(PdMessage *message) {

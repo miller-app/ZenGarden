@@ -33,16 +33,16 @@ MessageObject *MessageListAppend::newObject(PdMessage *initMessage, PdGraph *gra
         initMessage->isSymbol(0, "prepend") ||
         initMessage->isSymbol(0, "split")) {
       int numElements = initMessage->getNumElements()-1;
-      PdMessage *message = PD_MESSAGE_ON_STACK(numElements);
-      message->initWithTimestampAndNumElements(0.0, numElements);
-      memcpy(message->getElement(0), initMessage->getElement(1), numElements*sizeof(MessageAtom));
+      PdMessage message(numElements);
+      message.initWithTimestampAndNumElements(0.0, numElements);
+      memcpy(message.getElement(0), initMessage->getElement(1), numElements*sizeof(MessageAtom));
       MessageObject *messageObject = NULL;
       if (initMessage->isSymbol(0, "append")) {
-        messageObject = new MessageListAppend(message, graph);
+        messageObject = new MessageListAppend(&message, graph);
       } else if (initMessage->isSymbol(0, "prepend")) {
-        messageObject = new MessageListPrepend(message, graph);
+        messageObject = new MessageListPrepend(&message, graph);
       } else if (initMessage->isSymbol(0, "split")) {
-        messageObject = new MessageListSplit(message, graph);
+        messageObject = new MessageListSplit(&message, graph);
       }
       return messageObject;
     } else if (initMessage->isSymbol(0, "trim")) {
@@ -78,27 +78,27 @@ void MessageListAppend::processMessage(int inletIndex, PdMessage *message) {
       int numAppendElements = appendMessage->getNumElements();
       int numTotalElements = numMessageElements + numAppendElements;
       if (numTotalElements > 0) {
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(numTotalElements);
-        outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), numTotalElements);
-        memcpy(outgoingMessage->getElement(0), message->getElement(0), numMessageElements*sizeof(MessageAtom));
-        memcpy(outgoingMessage->getElement(numMessageElements), appendMessage->getElement(0), numAppendElements*sizeof(MessageAtom));
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(numTotalElements);
+        outgoingMessage.initWithTimestampAndNumElements(message->getTimestamp(), numTotalElements);
+        memcpy(outgoingMessage.getElement(0), message->getElement(0), numMessageElements*sizeof(MessageAtom));
+        memcpy(outgoingMessage.getElement(numMessageElements), appendMessage->getElement(0), numAppendElements*sizeof(MessageAtom));
+        sendMessage(0, &outgoingMessage);
       } else {
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }
     case 1: {
       if (message->isBang(0)) {
         // bangs are considered a list of size zero
-        appendMessage->freeMessage();
-        PdMessage *message = PD_MESSAGE_ON_STACK(0);
-        message->initWithTimestampAndNumElements(0.0, 0);
-        appendMessage = message->copyToHeap();
+        delete appendMessage;
+        PdMessage message(0);
+        message.initWithTimestampAndNumElements(0.0, 0);
+        appendMessage = message.copyToHeap();
       } else {
-        appendMessage->freeMessage();
+        delete appendMessage;
         appendMessage = message->copyToHeap();
       }
       break;

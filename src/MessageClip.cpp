@@ -57,9 +57,9 @@ void MessageClip::processMessage(int inletIndex, PdMessage *message) {
         } else if (output > upperBound) {
           output = upperBound;
         }
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), output);
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), output);
+        sendMessage(0, &outgoingMessage);
       }
       break;
     }

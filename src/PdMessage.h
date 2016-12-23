@@ -28,9 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 #include "MessageElementType.h"
-
-#define PD_MESSAGE_ON_STACK(_x) ((PdMessage *) alloca(PdMessage::numBytes(_x)));
 
 typedef struct MessageAtom {
   MessageElementType type;
@@ -44,7 +43,10 @@ typedef struct MessageAtom {
 /** Implements a Pd message. */
 class PdMessage {
   
-  public:  
+  public:
+    PdMessage(int numElements);
+    ~PdMessage();
+
     /**
      * Resolve arguments in a string with a given argument list into the given <code>buffer</code>
      * with <code>bufferLength</code>. 
@@ -106,10 +108,10 @@ class PdMessage {
      * independently to the heap.
      */
     PdMessage *copyToHeap();
-  
+    
     /** The message memory is freed from the heap, including symbols. */
     void freeMessage();
-    
+
     /**
      * Create a string representation of the message. Suitable for use by the print object.
      * The resulting string must be <code>free()</code>ed by the caller.
@@ -141,25 +143,12 @@ class PdMessage {
     void setBang(unsigned int index);
     void setAnything(unsigned int index);
     void setList(unsigned int index);
-  
-    /** Returns the number of bytes in a PdMessage structure with <code>x</code> number of elements. */
-    static inline unsigned int numBytes(unsigned int x) {
-      return sizeof(PdMessage) + (((x>0)?(x-1):0) * sizeof(MessageAtom));
-    }
-  
-    /**
-     * Returns the number of bytes in the PdMessage structure
-     * (as it is variable depending on the number of elements).
-     */
-    unsigned int numBytes();
 
   private:
-    PdMessage();
-    ~PdMessage();
 
     double timestamp;
     int numElements;
-    MessageAtom messageAtom;
+    std::vector<MessageAtom> messageAtoms;
 };
 
 #endif // _PD_MESSAGE_H_

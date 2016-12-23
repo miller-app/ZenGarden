@@ -32,11 +32,11 @@ MessageTrigger::MessageTrigger(PdMessage *initMessage, PdGraph *graph) :
   // resolve the symbols to type in a copy of the original message on the stack. That way the
   // symbol pointers don't get lost when replace with new MessageAtom types.
   int numElements = initMessage->getNumElements();
-  PdMessage *message = PD_MESSAGE_ON_STACK(numElements);
-  message->initWithTimestampAndNumElements(0.0, numElements);
-  memcpy(message->getElement(0), initMessage->getElement(0), numElements*sizeof(MessageAtom));
-  message->resolveSymbolsToType();
-  castMessage = message->copyToHeap();
+  PdMessage message(numElements);
+  message.initWithTimestampAndNumElements(0.0, numElements);
+  memcpy(message.getElement(0), initMessage->getElement(0), numElements*sizeof(MessageAtom));
+  message.resolveSymbolsToType();
+  castMessage = message.copyToHeap();
 }
 
 MessageTrigger::~MessageTrigger() {
@@ -59,7 +59,7 @@ string MessageTrigger::toString() {
 }
 
 void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+  PdMessage outgoingMessage(1);
   int numMessageOutlets = outgoingMessageConnections.size();
   for (int i = numMessageOutlets-1; i >= 0; i--) { // send messages from outlets right-to-left
     // TODO(mhroth): There is currently no support for converting to a LIST type
@@ -68,23 +68,23 @@ void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
         switch (castMessage->getType(i)) { // converting to...
           case ANYTHING:
           case FLOAT: {
-            outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(0));
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(0));
+            sendMessage(i, &outgoingMessage);
             break;
           }
           case SYMBOL: {
-            outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), (char *) "float");
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), (char *) "float");
+            sendMessage(i, &outgoingMessage);
             break;
           }
           case BANG: {
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           } default: {
             // send bang
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           }
         }
@@ -97,8 +97,8 @@ void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
             break;
           }
           case ANYTHING: {
-            outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(0));
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), message->getSymbol(0));
+            sendMessage(i, &outgoingMessage);
             break;
           }
           case SYMBOL: {
@@ -106,14 +106,14 @@ void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
             break;
           }
           case BANG: {
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           }
           default: {
             // send bang
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           }
         }
@@ -122,25 +122,25 @@ void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
       case BANG: {
         switch (castMessage->getType(i)) {
           case FLOAT: {
-            outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), 0.0f);
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), 0.0f);
+            sendMessage(i, &outgoingMessage);
             break;
           }
           case SYMBOL: {
-            outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), (char *) "symbol");
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), (char *) "symbol");
+            sendMessage(i, &outgoingMessage);
             break;
           }
           case ANYTHING:
           case BANG: {
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           }
           default: {
             // send bang, error
-            outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-            sendMessage(i, outgoingMessage);
+            outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+            sendMessage(i, &outgoingMessage);
             break;
           }
         }
@@ -148,8 +148,8 @@ void MessageTrigger::processMessage(int inletIndex, PdMessage *message) {
       }
       default: {
         // produce a bang if the input type is unknown (error)
-        outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-        sendMessage(i, outgoingMessage);
+        outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+        sendMessage(i, &outgoingMessage);
         break;
       }
     }

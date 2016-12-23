@@ -51,10 +51,10 @@ void MessageUntil::processMessage(int inletIndex, PdMessage *message) {
         }
       }
       
-      PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-      outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
+      PdMessage outgoingMessage(1);
+      outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
       for (unsigned int i = 0; i < maxIterations; i++) {
-        sendMessage(0, outgoingMessage);
+        sendMessage(0, &outgoingMessage);
       }
       
       break;

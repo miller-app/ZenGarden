@@ -144,10 +144,10 @@ void DspEnvelope::processSignal(DspObject *dspObject, int fromIndex, int toIndex
     // result is normalised such that 1 RMS == 100 dB
     rms = 10.0f * log10f(rms) + 100.0f;
 
-    PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+    PdMessage outgoingMessage(1);
     // graph will schedule this at the beginning of the next block because the timestamp will be
     // behind the block start timestamp
-    outgoingMessage->initWithTimestampAndFloat(0.0, (rms < 0.0f) ? 0.0f : rms);
-    d->graph->scheduleMessage(d, 0, outgoingMessage);
+    outgoingMessage.initWithTimestampAndFloat(0.0, (rms < 0.0f) ? 0.0f : rms);
+    d->graph->scheduleMessage(d, 0, &outgoingMessage);
   }
 }

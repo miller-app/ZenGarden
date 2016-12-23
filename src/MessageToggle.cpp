@@ -44,16 +44,16 @@ void MessageToggle::processMessage(int inletIndex, PdMessage *message) {
     case FLOAT: {
       isOn = (message->getFloat(0) != 0.0f);
       if (isOn) onOutput = message->getFloat(0);
-      PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-      outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), isOn ? onOutput : 0.0f);
-      sendMessage(0, outgoingMessage);
+      PdMessage outgoingMessage(1);
+      outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), isOn ? onOutput : 0.0f);
+      sendMessage(0, &outgoingMessage);
       break;
     }
     case BANG: {
       isOn = !isOn;
-      PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-      outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), isOn ? onOutput : 0.0f);
-      sendMessage(0, outgoingMessage);
+      PdMessage outgoingMessage(1);
+      outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), isOn ? onOutput : 0.0f);
+      sendMessage(0, &outgoingMessage);
       break;
     }
     case SYMBOL: {

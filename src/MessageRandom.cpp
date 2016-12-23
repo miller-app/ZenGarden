@@ -46,9 +46,9 @@ void MessageRandom::processMessage(int inletIndex, PdMessage *message) {
           break;
         }
         case BANG: {
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), (float) twister->randInt(max_inc));
-          sendMessage(0, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), (float) twister->randInt(max_inc));
+          sendMessage(0, &outgoingMessage);
           break;
         }
         default: break;

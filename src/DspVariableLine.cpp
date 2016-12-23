@@ -52,18 +52,18 @@ void DspVariableLine::processMessage(int inletIndex, PdMessage *message) {
         float delay = message->isFloat(2) ? message->getFloat(2) : 0.0f;
         
         // clear all messages after the given start time, insert the new message into the list
-        PdMessage *controlMessage = PD_MESSAGE_ON_STACK(2);
-        controlMessage->initWithTimestampAndNumElements(message->getTimestamp() + delay, 2);
-        controlMessage->setFloat(0, target);
-        controlMessage->setFloat(1, interval);
+        PdMessage controlMessage(2);
+        controlMessage.initWithTimestampAndNumElements(message->getTimestamp() + delay, 2);
+        controlMessage.setFloat(0, target);
+        controlMessage.setFloat(1, interval);
         
-        clearAllMessagesAtOrAfter(controlMessage->getTimestamp());
+        clearAllMessagesAtOrAfter(controlMessage.getTimestamp());
         
         if (delay == 0.0f) {
           // if there is no delay on the message, act on it immediately
-          updatePathWithMessage(controlMessage);
+          updatePathWithMessage(&controlMessage);
         } else {
-          PdMessage *heapMessage = graph->scheduleMessage(this, 0, controlMessage);
+          PdMessage *heapMessage = graph->scheduleMessage(this, 0, &controlMessage);
           messageList.push_back(heapMessage);
         }
         

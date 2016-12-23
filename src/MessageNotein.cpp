@@ -55,19 +55,19 @@ bool MessageNotein::isOmni() {
 }
 
 void MessageNotein::processMessage(int inletIndex, PdMessage *message) {
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+  PdMessage outgoingMessage(1);
   
   if (isOmni()) {
     // send channel
-    outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(2));
-    sendMessage(2, outgoingMessage);
+    outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(2));
+    sendMessage(2, &outgoingMessage);
   }
   
   // send velocity
-  outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(1));
-  sendMessage(1, outgoingMessage);
+  outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(1));
+  sendMessage(1, &outgoingMessage);
   
   // send note
-  outgoingMessage->initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(0));
-  sendMessage(0, outgoingMessage);
+  outgoingMessage.initWithTimestampAndFloat(message->getTimestamp(), message->getFloat(0));
+  sendMessage(0, &outgoingMessage);
 }

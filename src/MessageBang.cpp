@@ -35,7 +35,7 @@ MessageBang::~MessageBang() {
 }
 
 void MessageBang::processMessage(int inletIndex, PdMessage *message) {
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-  outgoingMessage->initWithTimestampAndBang(message->getTimestamp());
-  sendMessage(0, outgoingMessage);
+  PdMessage outgoingMessage(1);
+  outgoingMessage.initWithTimestampAndBang(message->getTimestamp());
+  sendMessage(0, &outgoingMessage);
 }

@@ -234,9 +234,9 @@ MessageObject *PdContext::newObject(const char *objectLabel, PdMessage *initMess
     return messageObject;
   } else if(StaticUtils::isNumeric(objectLabel)) {
     // special case for constructing a float object from a number
-    PdMessage *initMsg = PD_MESSAGE_ON_STACK(1);
-    initMsg->initWithTimestampAndFloat(0.0, atof(objectLabel));
-    return objectFactoryMap->newObject("float", initMsg, graph);
+    PdMessage initMsg(1);
+    initMsg.initWithTimestampAndFloat(0.0, atof(objectLabel));
+    return objectFactoryMap->newObject("float", &initMsg, graph);
   } else {
     return NULL; // unknown object
   }
@@ -470,18 +470,18 @@ void PdContext::sendMessageToNamedReceivers(char *name, PdMessage *message) {
 void PdContext::scheduleExternalMessageV(const char *receiverName, double timestamp,
     const char *messageFormat, va_list ap) {
   int numElements = strlen(messageFormat);
-  PdMessage *message = PD_MESSAGE_ON_STACK(numElements);
-  message->initWithTimestampAndNumElements(timestamp, numElements);
+  PdMessage message(numElements);
+  message.initWithTimestampAndNumElements(timestamp, numElements);
   for (int i = 0; i < numElements; i++) { // format message
     switch (messageFormat[i]) {
-      case 'f': message->setFloat(i, (float) va_arg(ap, double)); break;
-      case 's': message->setSymbol(i, (char *) va_arg(ap, char *)); break;
-      case 'b': message->setBang(i); break;
+      case 'f': message.setFloat(i, (float) va_arg(ap, double)); break;
+      case 's': message.setSymbol(i, (char *) va_arg(ap, char *)); break;
+      case 'b': message.setBang(i); break;
       default: break;
     }
   }
   
-  scheduleExternalMessage(receiverName, message);
+  scheduleExternalMessage(receiverName, &message);
 }
 
 void PdContext::scheduleExternalMessage(const char *receiverName, PdMessage *message) {
@@ -496,14 +496,14 @@ void PdContext::scheduleExternalMessage(const char *receiverName, PdMessage *mes
 void PdContext::scheduleExternalMessage(const char *receiverName, double timestamp, const char *initString) {
   // do the heavy lifting of string parsing before the lock (minimise the critical section)
   int maxElements = (strlen(initString)/2)+1;
-  PdMessage *message = PD_MESSAGE_ON_STACK(maxElements);
+  PdMessage message(maxElements);
   char str[strlen(initString)+1]; strcpy(str, initString);
-  message->initWithString(timestamp, maxElements, str);
+  message.initWithString(timestamp, maxElements, str);
   
   lock(); // lock and load
   int receiverNameIndex = sendController->getNameIndex(receiverName);
   if (receiverNameIndex >= 0) { // if the receiver exists
-    scheduleMessage(sendController, receiverNameIndex, message);
+    scheduleMessage(sendController, receiverNameIndex, &message);
   }
   unlock();
 }

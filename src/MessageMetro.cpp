@@ -83,9 +83,9 @@ void MessageMetro::processMessage(int inletIndex, PdMessage *message) {
 void MessageMetro::sendMessage(int outletIndex, PdMessage *message) {
   // schedule the pending message before the current one is sent so that if a stop message
   // arrives at this object while in this function, then the next message can be cancelled
-  pendingMessage = PD_MESSAGE_ON_STACK(1);
-  pendingMessage->initWithTimestampAndBang(message->getTimestamp() + intervalInMs);
-  pendingMessage = graph->scheduleMessage(this, 0, pendingMessage);
+  PdMessage pendingMessageStack(1);
+  pendingMessageStack.initWithTimestampAndBang(message->getTimestamp() + intervalInMs);
+  pendingMessage = graph->scheduleMessage(this, 0, &pendingMessageStack);
   
   MessageObject::sendMessage(outletIndex, message);
 }
@@ -96,9 +96,9 @@ void MessageMetro::startMetro(double timestamp) {
   // recently received bang.
   stopMetro();
   
-  PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-  outgoingMessage->initWithTimestampAndBang(timestamp);
-  sendMessage(0, outgoingMessage);
+  PdMessage outgoingMessage(1);
+  outgoingMessage.initWithTimestampAndBang(timestamp);
+  sendMessage(0, &outgoingMessage);
 }
 
 void MessageMetro::stopMetro() {

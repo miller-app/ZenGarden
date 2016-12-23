@@ -40,9 +40,9 @@ void MessageMakefilename::processMessage(int inletIndex, PdMessage *message) {
       case FLOAT: {
         char str[snprintf(NULL, 0, format, (int) message->getFloat(0))+1];
         snprintf(str, sizeof(str), format, (int) message->getFloat(0));
-        PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-        outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), str);
-        sendMessage(0, outgoingMessage);
+        PdMessage outgoingMessage(1);
+        outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), str);
+        sendMessage(0, &outgoingMessage);
         break;
       }
       case SYMBOL: {
@@ -52,9 +52,9 @@ void MessageMakefilename::processMessage(int inletIndex, PdMessage *message) {
         } else {
           char str[snprintf(NULL, 0, format, message->getSymbol(0))+1];
           snprintf(str, sizeof(str), format, message->getSymbol(0));
-          PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
-          outgoingMessage->initWithTimestampAndSymbol(message->getTimestamp(), str);
-          sendMessage(0, outgoingMessage);
+          PdMessage outgoingMessage(1);
+          outgoingMessage.initWithTimestampAndSymbol(message->getTimestamp(), str);
+          sendMessage(0, &outgoingMessage);
         }
         break;
       }
