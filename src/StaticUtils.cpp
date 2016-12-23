@@ -81,7 +81,7 @@ vector<string> StaticUtils::tokenizeString(const char *str, const char *delim) {
   
   const char *head = str;
   char *tail = NULL;
-  while ((tail = strstr(head, delim)) != NULL) {
+  while ((tail = strstr((char*)head, (char*)delim)) != NULL) {
     int numBytes = tail-head;
     string nextToken = string(s0, head-str, numBytes);
     tokenizedStrings.push_back(nextToken);

@@ -10,7 +10,7 @@ SNDFILE_INCLUDE = `pkg-config --cflags sndfile`
 SNDFILE_LIB = `pkg-config --libs sndfile`
 
 # -g
-CXXFLAGS = -O3 -fPIC -Wall -I$(my-dir) $(SNDFILE_INCLUDE)
+CXXFLAGS = -O3 -fPIC -std=c++11 -Wall -I$(my-dir) $(SNDFILE_INCLUDE)
 
 # figure out what platform we're on
 

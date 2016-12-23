@@ -39,6 +39,9 @@
 #include "MessageTable.h"
 #include "TableReceiverInterface.h"
 
+// Include here to avoid conflict with remove(const char*)
+#include <algorithm>
+
 #pragma mark Constructor/Deconstructor
 
 PdContext::PdContext(int numInputChannels, int numOutputChannels, int blockSize, float sampleRate,
