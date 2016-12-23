@@ -76,7 +76,7 @@ void DspMinimum::processSignal(DspObject *dspObject, int fromIndex, int toIndex)
   float *in0 = d->dspBufferAtInlet[0];
   float *in1 = d->dspBufferAtInlet[1];
   for (int i = fromIndex; i < toIndex; i++) {
-    d->dspBufferAtOutlet[0][i] = (in0[i] <= in10[i]) ? in0[i] : in1[i];
+    d->dspBufferAtOutlet[0][i] = (in0[i] <= in1[i]) ? in0[i] : in1[i];
   }
   #endif
 }

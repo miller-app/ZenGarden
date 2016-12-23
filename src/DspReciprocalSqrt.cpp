@@ -77,15 +77,15 @@ void DspReciprocalSqrt::processSignal(DspObject *dspObject, int fromIndex, int t
   int j;
   float y;
   for (int i = 0; i < toIndex; ++i) {
-    float f = dspBufferAtInlet[0][i];
+    float f = d->dspBufferAtInlet[0][i];
     if (f <= 0.0f) {
-      dspBufferAtOutlet0[i] = 0.0f;
+      d->dspBufferAtOutlet[0][i] = 0.0f;
     } else {
       y  = f;
       j  = *((long *) &y);
       j  = 0x5f375a86 - (j >> 1);
       y  = *((float *) &j);
-      dspBufferAtOutlet0[i]  = y * (1.5f - ( 0.5f * f * y * y ));
+      d->dspBufferAtOutlet[0][i]  = y * (1.5f - ( 0.5f * f * y * y ));
     }
   }
   #endif

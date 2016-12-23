@@ -66,12 +66,14 @@ PdContext::PdContext(int numInputChannels, int numOutputChannels, int blockSize,
   sendController = new MessageSendController(this);
 
   abstractionDatabase = new PdAbstractionDataBase();
-  
+
+#ifndef EMSCRIPTEN
   // configure the context lock, which is recursive
   pthread_mutexattr_t mta;
   pthread_mutexattr_init(&mta);
   pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
   pthread_mutex_init(&contextLock, &mta);
+#endif
 }
 
 PdContext::~PdContext() {
@@ -90,7 +92,9 @@ PdContext::~PdContext() {
 
   delete abstractionDatabase;
 
+#ifndef EMSCRIPTEN
   pthread_mutex_destroy(&contextLock);
+#endif
 }
 
 
@@ -156,7 +160,7 @@ void PdContext::process(float *inputBuffers, float *outputBuffers) {
   // clear the global output audio buffers so that dac~ nodes can write to it
   memset(globalDspOutputBuffers, 0, numBytesInOutputBuffers);
 
-  // Send all messages for this block
+  // // Send all messages for this block
   ObjectMessageLetPair omlPair;
   double nextBlockStartTimestamp = blockStartTimestamp + blockDurationMs;
   while (!messageCallbackQueue->empty() &&

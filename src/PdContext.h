@@ -24,7 +24,9 @@
 #define _PD_CONTEXT_H_
 
 #include <map>
+#ifndef EMSCRIPTEN
 #include <pthread.h>
+#endif
 #include "OrderedMessageQueue.h"
 #include "PdGraph.h"
 #include "ZGCallbackFunction.h"
@@ -70,8 +72,16 @@ class PdContext {
     
     void process(float *inputBuffers, float *outputBuffers);
   
-    void lock() { pthread_mutex_lock(&contextLock); }
-    void unlock() { pthread_mutex_unlock(&contextLock); }
+    void lock() {
+#ifndef EMSCRIPTEN
+        pthread_mutex_lock(&contextLock);
+#endif
+    }
+    void unlock() {
+#ifndef EMSCRIPTEN
+        pthread_mutex_unlock(&contextLock);
+#endif
+    }
   
     /** Globally register a remote message receiver (e.g. [send] or [notein]). */
     void registerRemoteMessageReceiver(RemoteMessageReceiver *receiver);
@@ -229,10 +239,12 @@ class PdContext {
   
     /** A list of all top-level graphs in this context. */
     vector<PdGraph *> graphList;
-  
+
+ #ifndef EMSCRIPTEN 
     /** A thread lock used to access critical sections of this context. */
     pthread_mutex_t contextLock;
-    
+#endif
+
     int numBytesInInputBuffers;
     int numBytesInOutputBuffers;
     
