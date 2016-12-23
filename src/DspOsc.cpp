@@ -23,6 +23,10 @@
 #include "DspOsc.h"
 #include "PdGraph.h"
 
+#ifdef EMSCRIPTEN
+#include <tmmintrin.h>
+#endif
+
 // initialise the static class variables
 float *DspOsc::cos_table = NULL;
 int DspOsc::refCount = 0;

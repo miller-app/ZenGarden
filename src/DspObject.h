@@ -27,7 +27,15 @@
 #include "ArrayArithmetic.h"
 #include "MessageObject.h"
 
-#if __SSE__
+#ifdef EMSCRIPTEN
+inline float* allocAlignedBuffer(size_t numBytes) {
+  void* memptr;
+  posix_memalign(&memptr, 16, numBytes);
+  return (float*)memptr;
+}
+#define ALLOC_ALIGNED_BUFFER(_numBytes) allocAlignedBuffer(_numBytes)
+#define FREE_ALIGNED_BUFFER(_buffer) free(_buffer)
+#elif __SSE__
 // allocate memory aligned to 16-bytes memory boundary
 #define ALLOC_ALIGNED_BUFFER(_numBytes) (float *) _mm_malloc(_numBytes, 16)
 #define FREE_ALIGNED_BUFFER(_buffer) _mm_free(_buffer)

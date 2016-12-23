@@ -25,6 +25,10 @@
 
 #include "DspObject.h"
 
+#ifdef EMSCRIPTEN
+#include <tmmintrin.h>
+#endif
+
 /** [phasor~], [phasor~ float] */
 class DspPhasor : public DspObject {
 
@@ -44,7 +48,9 @@ class DspPhasor : public DspObject {
   
     float frequency;
   
-    #if __SSE3__
+    #if EMSCRIPTEN
+    // TODO
+    #elif __SSE3__
     __m64 inc; // the amount by which to increment indicies every step
     __m64 indicies; // the table lookup indicies
     #endif

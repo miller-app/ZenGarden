@@ -25,6 +25,10 @@
 
 #include "DspObject.h"
 
+#ifdef EMSCRIPTEN
+#include <tmmintrin.h>
+#endif
+
 /** [osc~], [osc~ float] */
 class DspOsc : public DspObject {
   
