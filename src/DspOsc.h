@@ -39,6 +39,7 @@ class DspOsc : public DspObject {
     void onInletConnectionUpdate(unsigned int inletIndex);
   
   private:
+    static void processSignal(DspObject *dspObject, int fromIndex, int toIndex);
     static void processScalar(DspObject *dspObject, int fromIndex, int toIndex);
     void processMessage(int inletIndex, PdMessage *message);
   

@@ -65,5 +65,5 @@ void DspAdd::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
 void DspAdd::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
   DspAdd *d = reinterpret_cast<DspAdd *>(dspObject);
   ArrayArithmetic::add(d->dspBufferAtInlet[0] , d->constant,
-      d->dspBufferAtOutlet[0], fromIndex, fromIndex);
+      d->dspBufferAtOutlet[0], fromIndex, toIndex);
 }

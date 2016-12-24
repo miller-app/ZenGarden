@@ -53,7 +53,6 @@ DspOsc::DspOsc(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, g
   }
   
   processFunction = &processScalar;
-  processFunctionNoMessage = &processScalar;
 }
 
 DspOsc::~DspOsc() {
@@ -64,7 +63,7 @@ DspOsc::~DspOsc() {
 }
 
 void DspOsc::onInletConnectionUpdate(unsigned int inletIndex) {
-  // TODO(mhroth): support this with processSignal
+  processFunction = !incomingDspConnections[0].empty() ? &processSignal : &processScalar;
 }
 
 string DspOsc::toString() {
@@ -98,6 +97,25 @@ void DspOsc::processMessage(int inletIndex, PdMessage *message) {
     }
     default: break;
   }
+}
+
+void DspOsc::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
+    DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
+    #if __SSE3__
+    // TODO
+    #else
+    unsigned short currentIndex = d->currentIndex;
+    float multiplier = 65536.0f / d->graph->getSampleRate();
+    float *input = d->dspBufferAtInlet[0];
+    float *output = d->dspBufferAtOutlet[0];
+
+    for (int i = fromIndex; i < toIndex; i++) {
+      output[i] = DspOsc::cos_table[currentIndex];
+      currentIndex += (unsigned short) roundf(input[i] * multiplier);
+    }
+
+    d->currentIndex = currentIndex;
+    #endif
 }
 
 void DspOsc::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
