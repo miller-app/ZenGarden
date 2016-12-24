@@ -25,10 +25,6 @@
 
 #include "DspObject.h"
 
-#ifdef EMSCRIPTEN
-#include <tmmintrin.h>
-#endif
-
 /** [phasor~], [phasor~ float] */
 class DspPhasor : public DspObject {
 

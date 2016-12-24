@@ -23,10 +23,6 @@
 #include "DspOsc.h"
 #include "PdGraph.h"
 
-#ifdef EMSCRIPTEN
-#include <tmmintrin.h>
-#endif
-
 // initialise the static class variables
 float *DspOsc::cos_table = NULL;
 int DspOsc::refCount = 0;
@@ -42,6 +38,9 @@ DspOsc::DspOsc(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, g
   short step = (short) roundf(sampleStep);
   inc = _mm_set_epi16(8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step);
   indicies = _mm_set_epi16(7*step, 6*step, 5*step, 4*step, 3*step, 2*step, step, 0);
+  #else
+  step = (unsigned short) roundf(sampleStep);
+  currentIndex = 0;
   #endif
   
   phase = 0.0f;
@@ -87,6 +86,8 @@ void DspOsc::processMessage(int inletIndex, PdMessage *message) {
         unsigned short currentIndex = _mm_extract_epi16(indicies,0);
         indicies = _mm_set_epi16(7*step+currentIndex, 6*step+currentIndex, 5*step+currentIndex,
             4*step+currentIndex, 3*step+currentIndex, 2*step+currentIndex, step+currentIndex, currentIndex);
+        #else
+        step = (unsigned short) roundf(sampleStep);
         #endif
       }
       break;
@@ -175,6 +176,21 @@ void DspOsc::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
     }
   }
   #else
-  // TODO(mhroth):!!!
+/*
+   * Creates an array of unsigned short indicies (since the length of the cosine lookup table is
+   * of length 2^16. These indicies are incremented by a step size based on the desired frequency.
+   * As the indicies overflow during addition, they loop back around to zero.
+   */
+  float *output = d->dspBufferAtOutlet[0]+fromIndex;
+  unsigned short step = d->step;
+  unsigned short currentIndex = d->currentIndex;
+  int n = toIndex - fromIndex;
+
+  for (int i = 0; i < n; i++) {
+    *output++ = DspOsc::cos_table[currentIndex];
+    currentIndex += step;
+  }
+
+  d->currentIndex = currentIndex;
   #endif
 }

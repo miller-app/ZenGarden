@@ -25,10 +25,6 @@
 
 #include "DspObject.h"
 
-#ifdef EMSCRIPTEN
-#include <tmmintrin.h>
-#endif
-
 /** [osc~], [osc~ float] */
 class DspOsc : public DspObject {
   
@@ -56,6 +52,9 @@ class DspOsc : public DspObject {
     #if __SSE3__
     __m128i inc; // the amount by which to increment indicies every step
     __m128i indicies; // the table lookup indicies
+    #else
+    unsigned short step;
+    unsigned short currentIndex;
     #endif
 };
 

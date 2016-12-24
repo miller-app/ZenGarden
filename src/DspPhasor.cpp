@@ -23,10 +23,6 @@
 #include "DspPhasor.h"
 #include "PdGraph.h"
 
-#ifdef EMSCRIPTEN
-#include <tmmintrin.h>
-#endif
-
 #define SHORT_TO_FLOAT_RATIO 0.0000152590219f // == 1/(2^16 - 1)
 
 MessageObject *DspPhasor::newObject(PdMessage *initMessage, PdGraph *graph) {
