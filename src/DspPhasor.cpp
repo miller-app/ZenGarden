@@ -29,7 +29,7 @@ MessageObject *DspPhasor::newObject(PdMessage *initMessage, PdGraph *graph) {
   return new DspPhasor(initMessage, graph);
 }
 
-DspPhasor::DspPhasor(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, graph) {  
+DspPhasor::DspPhasor(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, graph) {
   PdMessage *message = PD_MESSAGE_ON_STACK(1);
   message->initWithTimestampAndFloat(0.0, initMessage->isFloat(0) ? initMessage->getFloat(0) : 0.0f);
   processMessage(0, message);
@@ -57,12 +57,12 @@ void DspPhasor::processMessage(int inletIndex, PdMessage *message) {
     case 0: { // update the frequency
       if (message->isFloat(0)) {
         frequency = message->getFloat(0);
-        #if EMSCRIPTEN
-        // TODO
-        #elif __SSE3__
+        #if __SSE3__
         float sampleStep = frequency * 65536.0f / graph->getSampleRate();
         short s = (short) sampleStep; // signed as step size may be negative as well!
         inc = _mm_set1_pi16(4*s);
+        #else
+        inc = frequency / graph->getSampleRate();
         #endif // __SSE3__
       }
       break;
@@ -78,9 +78,7 @@ void DspPhasor::processMessage(int inletIndex, PdMessage *message) {
 // NOTE(mhroth): it is assumed that the block size (toIndex) is a multiple of 4
 void DspPhasor::processSignal(DspObject *dspObject, int fromIndex, int n4) {
   DspPhasor *d = reinterpret_cast<DspPhasor *>(dspObject);
-  #if EMSCRIPTEN
-  // TODO
-  #elif __SSE3__
+  #if __SSE3__
   float *input = d->dspBufferAtInlet[0];
   float *output = d->dspBufferAtOutlet[0];
   __m64 indicies = d->indicies;
@@ -108,16 +106,28 @@ void DspPhasor::processSignal(DspObject *dspObject, int fromIndex, int n4) {
   d->indicies = indicies;
   
   #else
-  // TODO(mhroth):!!!
+  float inc = d->inc;
+  float offset = d->offset;
+  float *input = d->dspBufferAtInlet[0];
+  float *output = d->dspBufferAtOutlet[0];
+  float sampleRate = d->graph->getSampleRate();
+
+  for (int i = fromIndex; i < n4; i++) {
+    inc = input[i] / sampleRate;
+    output[i] = offset;
+    offset = offset + inc;
+    offset -= (long)offset; // Get fractional part
+  }
+
+  d->inc = inc;
+  d->offset = offset;
   #endif
 }
 
 // http://cache-www.intel.com/cd/00/00/34/76/347603_347603.pdf
 void DspPhasor::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
   DspPhasor *d = reinterpret_cast<DspPhasor *>(dspObject);
-  #if EMSCRIPTEN
-  // TODO
-  #elif __SSE3__
+  #if __SSE3__
   /*
    * Creates an array of unsigned short indicies (since the length of the cosine lookup table is
    * of length 2^16. These indicies are incremented by a step size based on the desired frequency.
@@ -176,6 +186,17 @@ void DspPhasor::processScalar(DspObject *dspObject, int fromIndex, int toIndex) 
     //      d->currentIndex = currentIndex + ((short) ((d->sampleStep - floorf(d->sampleStep)) * n));
   }
   #else
-  // TODO(mhroth):!!!
+  float inc = d->inc;
+  float offset = d->offset;
+  float *output = d->dspBufferAtOutlet[0];
+  float sampleRate = d->graph->getSampleRate();
+
+  for (int i = fromIndex; i < toIndex; i++) {
+    output[i] = offset;
+    offset += inc;
+    offset -= (long)offset; // Get fractional part
+  }
+
+  d->offset = offset;
   #endif
 }

@@ -44,11 +44,12 @@ class DspPhasor : public DspObject {
   
     float frequency;
   
-    #if EMSCRIPTEN
-    // TODO
-    #elif __SSE3__
+    #if __SSE3__
     __m64 inc; // the amount by which to increment indicies every step
     __m64 indicies; // the table lookup indicies
+    #else
+    float inc;
+    float offset;
     #endif
 };
 
