@@ -108,12 +108,21 @@ void DspOsc::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
     float multiplier = 65536.0f / d->graph->getSampleRate();
     float *input = d->dspBufferAtInlet[0];
     float *output = d->dspBufferAtOutlet[0];
+    float frequency = d->frequency;
+    float sampleStep = d->sampleStep;
+    unsigned short step = d->step;
 
     for (int i = fromIndex; i < toIndex; i++) {
+      frequency = input[i];
+      sampleStep = frequency * multiplier;
+      step = (unsigned short) roundf(sampleStep);
       output[i] = DspOsc::cos_table[currentIndex];
-      currentIndex += (unsigned short) roundf(input[i] * multiplier);
+      currentIndex += step;
     }
 
+    d->frequency = frequency;
+    d->sampleStep = sampleStep;
+    d->step = step;
     d->currentIndex = currentIndex;
     #endif
 }
