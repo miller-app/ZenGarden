@@ -98,6 +98,7 @@ LOCAL_SRC_FILES := \
 ./MessageOutlet.cpp \
 ./MessagePack.cpp \
 ./MessagePipe.cpp \
+./MessagePoly.cpp \
 ./MessagePow.cpp \
 ./MessagePowToDb.cpp \
 ./MessagePrint.cpp \

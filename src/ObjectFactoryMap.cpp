@@ -74,6 +74,7 @@
 #include "MessageOutlet.h"
 #include "MessagePack.h"
 #include "MessagePipe.h"
+#include "MessagePoly.h"
 #include "MessagePow.h"
 #include "MessagePowToDb.h"
 #include "MessagePrint.h"
@@ -210,6 +211,7 @@ ObjectFactoryMap::ObjectFactoryMap() {
   objectFactoryMap[string(MessageOutlet::getObjectLabel())] = &MessageOutlet::newObject;
   objectFactoryMap[string(MessagePack::getObjectLabel())] = &MessagePack::newObject;
   objectFactoryMap[string(MessagePipe::getObjectLabel())] = &MessagePipe::newObject;
+  objectFactoryMap[string(MessagePoly::getObjectLabel())] = &MessagePoly::newObject;
   objectFactoryMap[string(MessagePow::getObjectLabel())] = &MessagePow::newObject;
   objectFactoryMap[string(MessagePowToDb::getObjectLabel())] = &MessagePowToDb::newObject;
   objectFactoryMap[string(MessagePrint::getObjectLabel())] = &MessagePrint::newObject;
