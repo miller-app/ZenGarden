@@ -26,7 +26,7 @@ MessageObject *MessagePoly::newObject(PdMessage *initMessage, PdGraph *graph) {
 }
 
 MessagePoly::MessagePoly(PdMessage *initMessage, PdGraph *graph) :
-  MessageObject(initMessage->getNumElements(), 1, graph), velocity(0.0f), serial(0L) {
+  MessageObject(initMessage->getNumElements(), 3, graph), velocity(0.0f), serial(0L) {
   n = 1;
   if (initMessage->isFloat(0)) {
     int value = (int)initMessage->getFloat(0);
@@ -71,25 +71,32 @@ void MessagePoly::processMessage(int inletIndex, PdMessage *message) {
             }
           }
           if (firstOff != nullptr) {
-            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(3);
-            outgoingMessage->initWithTimestampAndNumElements(message->getTimestamp(), 3);
-            outgoingMessage->setFloat(0, offIndex + 1);
-            outgoingMessage->setFloat(1, val);
-            outgoingMessage->setFloat(2, velocity);
+            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+            double timestamp = message->getTimestamp();
+            outgoingMessage->initWithTimestampAndFloat(timestamp, velocity);
+            sendMessage(2, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, val);
+            sendMessage(1, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, offIndex + 1);
             sendMessage(0, outgoingMessage);
             firstOff->pitch = val;
             firstOff->used = true;
             firstOff->serial = serial++;
           } else if (firstOn != nullptr && steal) {
             // If no available voice, steal one
-            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(3);
-            outgoingMessage->setFloat(0, onIndex + 1);
-            outgoingMessage->setFloat(1, firstOn->pitch);
-            outgoingMessage->setFloat(2, 0);
+            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+            double timestamp = message->getTimestamp();
+            outgoingMessage->initWithTimestampAndFloat(timestamp, 0);
+            sendMessage(2, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, firstOn->pitch);
+            sendMessage(1, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, onIndex + 1);
             sendMessage(0, outgoingMessage);
-            outgoingMessage->setFloat(0, onIndex + 1);
-            outgoingMessage->setFloat(1, val);
-            outgoingMessage->setFloat(2, velocity);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, velocity);
+            sendMessage(2, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, val);
+            sendMessage(1, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, onIndex + 1);
             sendMessage(0, outgoingMessage);
             firstOn->pitch = val;
             firstOn->serial = serial++;
@@ -108,10 +115,13 @@ void MessagePoly::processMessage(int inletIndex, PdMessage *message) {
           if (firstOn != nullptr) {
             firstOn->used = false;
             firstOn->serial = serial++;
-            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(3);
-            outgoingMessage->setFloat(0, onIndex + 1);
-            outgoingMessage->setFloat(1, firstOn->pitch);
-            outgoingMessage->setFloat(2, 0);
+            PdMessage *outgoingMessage = PD_MESSAGE_ON_STACK(1);
+            double timestamp = message->getTimestamp();
+            outgoingMessage->initWithTimestampAndFloat(timestamp, 0);
+            sendMessage(2, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, firstOn->pitch);
+            sendMessage(1, outgoingMessage);
+            outgoingMessage->initWithTimestampAndFloat(timestamp, onIndex + 1);
             sendMessage(0, outgoingMessage);
           }
         }
