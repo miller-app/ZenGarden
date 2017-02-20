@@ -43,20 +43,11 @@ class DspOsc : public DspObject {
     static void processScalar(DspObject *dspObject, int fromIndex, int toIndex);
     void processMessage(int inletIndex, PdMessage *message);
   
-    float frequency; // frequency and phase are stored as integers because they are used
-    float sampleStep;
-    int phase;     // in for-loops to traverse the lookup table
+    float frequency;
+    double phase;
   
     static float *cos_table; // the cosine lookup table
     static int refCount; // a reference counter for cos_table. Now we know when to free it.
-  
-    #if __SSE3__
-    __m128i inc; // the amount by which to increment indicies every step
-    __m128i indicies; // the table lookup indicies
-    #else
-    unsigned short step;
-    unsigned short currentIndex;
-    #endif
 };
 
 inline const char *DspOsc::getObjectLabel() {

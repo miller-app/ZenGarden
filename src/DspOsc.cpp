@@ -23,6 +23,54 @@
 #include "DspOsc.h"
 #include "PdGraph.h"
 
+/*
+ * This code makes use of selections from Pure Data source.
+ * See https://github.com/pure-data/pure-data/blob/master/LICENSE.txt.
+ *
+ * Copyright (c) 1997-1999 Miller Puckette.
+ */
+
+#define COSTABSIZE 32768
+#define UNITBIT32 1572864.  /* 3*2^19; bit 32 has place value 1 */
+
+#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__FreeBSD_kernel__) \
+    || defined(__OpenBSD__)
+#include <machine/endian.h>
+#endif
+
+#if defined(__linux__) || defined(__CYGWIN__) || defined(__GNU__) || \
+    defined(ANDROID)
+#include <endian.h>
+#endif
+
+#ifdef __MINGW32__
+#include <sys/param.h>
+#endif
+
+#ifdef _MSC_VER
+/* _MSVC lacks BYTE_ORDER and LITTLE_ENDIAN */
+#define LITTLE_ENDIAN 0x0001
+#define BYTE_ORDER LITTLE_ENDIAN
+#endif
+
+#if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN)
+#error No byte order defined
+#endif
+
+#if BYTE_ORDER == LITTLE_ENDIAN
+# define HIOFFSET 1
+# define LOWOFFSET 0
+#else
+# define HIOFFSET 0    /* word offset to find MSB */
+# define LOWOFFSET 1    /* word offset to find LSB */
+#endif
+
+union tabfudge
+{
+    double tf_d;
+    int32_t tf_i[2];
+};
+
 // initialise the static class variables
 float *DspOsc::cos_table = NULL;
 int DspOsc::refCount = 0;
@@ -33,22 +81,13 @@ MessageObject *DspOsc::newObject(PdMessage *initMessage, PdGraph *graph) {
 
 DspOsc::DspOsc(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, graph) {
   frequency = initMessage->isFloat(0) ? initMessage->getFloat(0) : 0.0f;
-  sampleStep = frequency * 65536.0f / graph->getSampleRate();
-  #if __SSE3__
-  short step = (short) roundf(sampleStep);
-  inc = _mm_set_epi16(8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step);
-  indicies = _mm_set_epi16(7*step, 6*step, 5*step, 4*step, 3*step, 2*step, step, 0);
-  #else
-  step = (unsigned short) roundf(sampleStep);
-  currentIndex = 0;
-  #endif
-  
-  phase = 0.0f;
+  phase = 0.0;
   refCount++;
+
   if (cos_table == NULL) {
-    cos_table = ALLOC_ALIGNED_BUFFER(65536 * sizeof(float));
-    for (int i = 0; i < 65536; i++) {
-      cos_table[i] = cosf(2.0f * M_PI * ((float) i) / 65536.0f);
+    cos_table = ALLOC_ALIGNED_BUFFER(COSTABSIZE * sizeof(float));
+    for (int i = 0; i < COSTABSIZE; i++) {
+      cos_table[i] = cosf(2.0f * M_PI * ((float) i) / COSTABSIZE);
     }
   }
   
@@ -77,22 +116,11 @@ void DspOsc::processMessage(int inletIndex, PdMessage *message) {
     case 0: { // update the frequency
       if (message->isFloat(0)) {
         frequency = fabsf(message->getFloat(0));
-        sampleStep = frequency * 65536.0f / graph->getSampleRate();
-        
-        #if __SSE3__
-        short step = (short) roundf(sampleStep);
-        inc = _mm_set_epi16(8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step, 8*step);
-        unsigned short currentIndex = _mm_extract_epi16(indicies,0);
-        indicies = _mm_set_epi16(7*step+currentIndex, 6*step+currentIndex, 5*step+currentIndex,
-            4*step+currentIndex, 3*step+currentIndex, 2*step+currentIndex, step+currentIndex, currentIndex);
-        #else
-        step = (unsigned short) roundf(sampleStep);
-        #endif
       }
       break;
     }
     case 1: { // update the phase
-      // TODO(mhroth)
+      // TODO
       break;
     }
     default: break;
@@ -101,123 +129,60 @@ void DspOsc::processMessage(int inletIndex, PdMessage *message) {
 
 void DspOsc::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
     DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
-    #if __SSE3__
-    // TODO
-    #else
-    unsigned short currentIndex = d->currentIndex;
-    float multiplier = 65536.0f / d->graph->getSampleRate();
+    float multiplier = (float)COSTABSIZE / d->graph->getSampleRate();
     float *input = d->dspBufferAtInlet[0];
     float *output = d->dspBufferAtOutlet[0];
-    float frequency = d->frequency;
-    float sampleStep = d->sampleStep;
-    unsigned short step = d->step;
+    double phase = (double)d->phase + UNITBIT32;
+    int normhipart;
+    union tabfudge tf;
+
+    tf.tf_d = UNITBIT32;
+    normhipart = tf.tf_i[HIOFFSET];
 
     for (int i = fromIndex; i < toIndex; i++) {
-      frequency = input[i];
-      sampleStep = frequency * multiplier;
-      step = (unsigned short) roundf(sampleStep);
-      output[i] = DspOsc::cos_table[currentIndex];
-      currentIndex += step;
+        tf.tf_d = phase;
+        phase += input[i] * multiplier;
+        float *addr = DspOsc::cos_table + (tf.tf_i[HIOFFSET] & (COSTABSIZE - 1));
+        tf.tf_i[HIOFFSET] = normhipart;
+        float frac = tf.tf_d - UNITBIT32;
+        float f1 = addr[0];
+        float f2 = addr[1];
+        output[i] = f1 + frac * (f2 - f1);
     }
 
-    d->frequency = frequency;
-    d->sampleStep = sampleStep;
-    d->step = step;
-    d->currentIndex = currentIndex;
-    #endif
+    tf.tf_d = UNITBIT32 * COSTABSIZE;
+    normhipart = tf.tf_i[HIOFFSET];
+    tf.tf_d = phase + (UNITBIT32 * COSTABSIZE - UNITBIT32);
+    tf.tf_i[HIOFFSET] = normhipart;
+    d->phase = tf.tf_d - UNITBIT32 * COSTABSIZE;
 }
 
 void DspOsc::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
   DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
-  #if __SSE3__
-  /*
-   * Creates an array of unsigned short indicies (since the length of the cosine lookup table is
-   * of length 2^16. These indicies are incremented by a step size based on the desired frequency.
-   * As the indicies overflow during addition, they loop back around to zero.
-   */
+  float multiplier = (float)COSTABSIZE / d->graph->getSampleRate();
   float *output = d->dspBufferAtOutlet[0]+fromIndex;
-  __m128i inc = d->inc;
-  __m128i indicies = d->indicies;
-  int n = toIndex - fromIndex;
-  
-  unsigned short currentIndex = _mm_extract_epi16(indicies,0);
-  short step = _mm_extract_epi16(inc,0)/8;
-  
-  switch (fromIndex & 0x7) {
-    case 0: default: break;
-    case 1: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n; // allow fallthrough
-    case 2: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-    case 3: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-    case 4: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-    case 5: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-    case 6: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-    case 7: {
-      *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; --n;
-      
-      d->indicies = _mm_set_epi16(7*step+currentIndex, 6*step+currentIndex, 5*step+currentIndex,
-          4*step+currentIndex, 3*step+currentIndex, 2*step+currentIndex, step+currentIndex, currentIndex);
-    }
-  }
-  
-  int n4 = n & 0xFFFFFFF8; // we can process 8 indicies at a time
-  while (n4) {
-    __m128 values = _mm_set_ps(DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,3)],
-                               DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,2)],
-                               DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,1)],
-                               DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,0)]);
-    _mm_store_ps(output, values);
-    output += 4;
-    values = _mm_set_ps(DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,7)],
-                        DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,6)],
-                        DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,5)],
-                        DspOsc::cos_table[(unsigned short) _mm_extract_epi16(indicies,4)]);
-    _mm_store_ps(output, values);
-    indicies = _mm_add_epi16(indicies, inc);
-    output += 4;
-    n4 -= 8;
-  }
-  
-  currentIndex = _mm_extract_epi16(indicies,0);
-  switch (n & 0x7) {
-    case 7: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step; // allow fallthrough
-    case 6: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    case 5: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    case 4: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    case 3: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    case 2: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    case 1: *output++ = DspOsc::cos_table[currentIndex]; currentIndex += step;
-    default: {
-      // set the current index to the correct location, given that the step size is actually
-      // a real number, not an integer
-      // NOTE(mhroth): but doing this will cause clicks :-/ Osc will thus go out of phase over time
-      // Will anyone complain?
-//      d->currentIndex = currentIndex + ((short) ((d->sampleStep - floorf(d->sampleStep)) * n));
-      
-      if ((n & 0x7) == 0) {
-        d->indicies = indicies;
-      } else {
-        d->indicies = _mm_set_epi16(7*step+currentIndex, 6*step+currentIndex, 5*step+currentIndex,
-            4*step+currentIndex, 3*step+currentIndex, 2*step+currentIndex, step+currentIndex, currentIndex);        
-      }
-      break;
-    }
-  }
-  #else
-/*
-   * Creates an array of unsigned short indicies (since the length of the cosine lookup table is
-   * of length 2^16. These indicies are incremented by a step size based on the desired frequency.
-   * As the indicies overflow during addition, they loop back around to zero.
-   */
-  float *output = d->dspBufferAtOutlet[0]+fromIndex;
-  unsigned short step = d->step;
-  unsigned short currentIndex = d->currentIndex;
-  int n = toIndex - fromIndex;
+  double frequency = d->frequency;
+  double phase = (double)d->phase + UNITBIT32;
+  int normhipart;
+  union tabfudge tf;
 
-  for (int i = 0; i < n; i++) {
-    *output++ = DspOsc::cos_table[currentIndex];
-    currentIndex += step;
+  tf.tf_d = UNITBIT32;
+  normhipart = tf.tf_i[HIOFFSET];
+
+  for (int i = fromIndex; i < toIndex; i++) {
+      tf.tf_d = phase;
+      phase += frequency * multiplier;
+      float *addr = DspOsc::cos_table + (tf.tf_i[HIOFFSET] & (COSTABSIZE - 1));
+      tf.tf_i[HIOFFSET] = normhipart;
+      float frac = tf.tf_d - UNITBIT32;
+      float f1 = addr[0];
+      float f2 = addr[1];
+      output[i] = f1 + frac * (f2 - f1);
   }
 
-  d->currentIndex = currentIndex;
-  #endif
+  tf.tf_d = UNITBIT32 * COSTABSIZE;
+  normhipart = tf.tf_i[HIOFFSET];
+  tf.tf_d = phase + (UNITBIT32 * COSTABSIZE - UNITBIT32);
+  tf.tf_i[HIOFFSET] = normhipart;
+  d->phase = tf.tf_d - UNITBIT32 * COSTABSIZE;
 }
