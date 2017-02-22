@@ -45,7 +45,9 @@ class DspTableWrite : public DspObject, public TableReceiverInterface {
     void processMessage(int inletIndex, PdMessage *message);
     void processDspWithIndex(int fromIndex, int toIndex);
 
-    std::string name;
+    int index;
+    bool stopped;
+    char *name;
     MessageTable *table;
 };
 

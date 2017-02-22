@@ -147,6 +147,7 @@
 #include "DspTablePlay.h"
 #include "DspTableRead.h"
 #include "DspTableRead4.h"
+#include "DspTableWrite.h"
 #include "DspThrow.h"
 #include "DspVariableDelay.h"
 #include "DspVariableLine.h"
@@ -294,6 +295,7 @@ ObjectFactoryMap::ObjectFactoryMap() {
   objectFactoryMap[string(DspTablePlay::getObjectLabel())] = &DspTablePlay::newObject;
   objectFactoryMap[string(DspTableRead::getObjectLabel())] = &DspTableRead::newObject;
   objectFactoryMap[string(DspTableRead4::getObjectLabel())] = &DspTableRead4::newObject;
+  objectFactoryMap[string(DspTableWrite::getObjectLabel())] = &DspTableWrite::newObject;
   objectFactoryMap[string(DspThrow::getObjectLabel())] = &DspThrow::newObject;
   objectFactoryMap[string(DspVariableDelay::getObjectLabel())] = &DspVariableDelay::newObject;
   objectFactoryMap[string(DspVariableLine::getObjectLabel())] = &DspVariableLine::newObject;

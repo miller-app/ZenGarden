@@ -96,6 +96,11 @@ public class DspObjectTest implements ZenGardenListener {
   public void testDspSendReceive() {
     genericDspTest("DspSendReceive.pd");
   }
+
+  @Test
+  public void testDspTableWrite() {
+    genericDspTest("DspTableWrite.pd", 2000);
+  }
   
   @Test
   public void testDspThrowCatch() {

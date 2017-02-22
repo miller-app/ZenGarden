@@ -27,6 +27,7 @@
 #include "DspTablePlay.h"
 #include "DspTableRead.h"
 #include "DspTableRead4.h"
+#include "DspTableWrite.h"
 #include "MessageInlet.h"
 #include "MessageOutlet.h"
 #include "MessageTableRead.h"
@@ -270,6 +271,10 @@ void PdGraph::registerObject(MessageObject *messageObject) {
     }
     case DSP_TABLE_READ: {
       context->registerTableReceiver((DspTableRead *) messageObject);
+      break;
+    }
+    case DSP_TABLE_WRITE: {
+      context->registerTableReceiver(reinterpret_cast<DspTableWrite *>(messageObject));
       break;
     }
     case DSP_THROW: {
