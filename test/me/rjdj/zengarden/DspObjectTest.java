@@ -22,6 +22,7 @@
 
 package me.rjdj.zengarden;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
@@ -91,6 +92,11 @@ public class DspObjectTest implements ZenGardenListener {
   public void testDspPhasorSignal() {
     genericDspTest("DspPhasorSignal.pd");
   }
+
+  @Test
+  public void testDspSampHold() {
+    genericDspTest("DspSampHold.pd");
+  }
   
   @Test
   public void testDspSendReceive() {
@@ -120,11 +126,15 @@ public class DspObjectTest implements ZenGardenListener {
   private void genericDspTest(String testFilename) {
     genericDspTest(testFilename, 1000.0f);
   }
+
+  private void genericDspTest(String testFilename, float minmumRuntimeMs) {
+    genericDspTest(testFilename, minmumRuntimeMs, 200.0);
+  }
   
   /**
    * Executes the generic message test for at least the given minimum runtime (in milliseconds).
    */
-  private void genericDspTest(String testFilename, float minmumRuntimeMs) {
+  private void genericDspTest(String testFilename, float minmumRuntimeMs, double epsilon) {
     // create and configure a context
     ZGContext context = new ZGContext(NUM_INPUT_CHANNELS, NUM_OUTPUT_CHANNELS, BLOCK_SIZE, SAMPLE_RATE);
     context.addListener(this);
@@ -168,9 +178,14 @@ public class DspObjectTest implements ZenGardenListener {
       
       // ensure that the output and expected buffers are the same
       float blockTimeSec = i*BLOCK_SIZE/SAMPLE_RATE;
-      assertArrayEquals("Output not equal to golden file at time " + blockTimeSec + "s." +
-          "\n\n" + printBuffer.toString(),
-          goldenBuffer, OUTPUT_BUFFER);
+      for (int j = 0; j < goldenBuffer.length; j++) {
+        assertEquals(
+          "Output not equal to golden file at time " + blockTimeSec + "s." + "\n\n" + printBuffer.toString(),
+          (double)goldenBuffer[j],
+          (double)OUTPUT_BUFFER[j],
+          epsilon
+        );
+      }
     }
   }
  

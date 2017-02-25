@@ -33,6 +33,7 @@ LOCAL_SRC_FILES := \
 ./DspReciprocalSqrt.cpp \
 ./DspRfft.cpp \
 ./DspRifft.cpp \
+./DspSampHold.cpp \
 ./DspSend.cpp \
 ./DspSignal.cpp \
 ./DspSnapshot.cpp \

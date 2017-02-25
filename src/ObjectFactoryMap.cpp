@@ -139,6 +139,7 @@
 #include "DspReciprocalSqrt.h"
 #include "DspRfft.h"
 #include "DspRifft.h"
+#include "DspSampHold.h"
 #include "DspSend.h"
 #include "DspSignal.h"
 #include "DspSqrt.h"
@@ -285,6 +286,7 @@ ObjectFactoryMap::ObjectFactoryMap() {
   objectFactoryMap[string("q8_rsqrt~")] = &DspReciprocalSqrt::newObject;
   objectFactoryMap[string(DspRfft::getObjectLabel())] = &DspRfft::newObject;
   objectFactoryMap[string(DspRifft::getObjectLabel())] = &DspRifft::newObject;
+  objectFactoryMap[string(DspSampHold::getObjectLabel())] = &DspSampHold::newObject;
   objectFactoryMap[string(DspSend::getObjectLabel())] = &DspSend::newObject;
   objectFactoryMap[string("s~")] = &DspSend::newObject;
   objectFactoryMap[string(DspSignal::getObjectLabel())] = &DspSignal::newObject;

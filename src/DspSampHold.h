@@ -1,6 +1,6 @@
 /*
  *  Copyright 2017 Jacob Stern
- * 
+ *
  *  This file is part of ZenGarden.
  *
  *  ZenGarden is free software: you can redistribute it and/or modify
@@ -12,57 +12,41 @@
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with ZenGarden.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _DSP_TABLE_WRITE_H_
-#define _DSP_TABLE_WRITE_H_
+#ifndef _DSP_SAMP_HOLD_H_
+#define _DSP_SAMP_HOLD_H_
 
 #include "DspObject.h"
-#include "TableReceiverInterface.h"
 
-/* [tabwrite~ name] */
-class DspTableWrite : public DspObject, public TableReceiverInterface {
-  
+/** [samphold~] */
+class DspSampHold : public DspObject {
   public:
     static MessageObject *newObject(PdMessage *initMessage, PdGraph *graph);
-    DspTableWrite(PdMessage *initMessage, PdGraph *graph);
-    ~DspTableWrite();
-    
+    DspSampHold(PdMessage *initMessage, PdGraph *graph);
+    ~DspSampHold();
+  
     static const char *getObjectLabel();
     std::string toString();
-    ObjectType getObjectType();
-  
-    char *getName();
-    void setTable(MessageTable *table);
-    
+
   private:
+    float lastControlVal;
+    float sample;
+
     void processMessage(int inletIndex, PdMessage *message);
     void processDspWithIndex(int fromIndex, int toIndex);
-
-    int index;
-    bool stopped;
-    char *name;
-    MessageTable *table;
 };
 
-inline std::string DspTableWrite::toString() {
-  return DspTableWrite::getObjectLabel();
+inline const char *DspSampHold::getObjectLabel() {
+  return "samphold~";
 }
 
-inline const char *DspTableWrite::getObjectLabel() {
-  return "tabwrite~";
+inline std::string DspSampHold::toString() {
+  return DspSampHold::getObjectLabel();
 }
 
-inline ObjectType DspTableWrite::getObjectType() {
-  return DSP_TABLE_WRITE;
-}
-
-inline char *DspTableWrite::getName() {
-  return name;
-}
-
-#endif // _DSP_TABLE_WRITE_H_
+#endif // _DSP_SAMP_HOLD_H_
