@@ -35,6 +35,9 @@ inline float* allocAlignedBuffer(size_t numBytes) {
 }
 #define ALLOC_ALIGNED_BUFFER(_numBytes) allocAlignedBuffer(_numBytes)
 #define FREE_ALIGNED_BUFFER(_buffer) free(_buffer)
+#elif _WIN32
+#define ALLOC_ALIGNED_BUFFER(_numBytes) (float *) malloc(_numBytes)
+#define FREE_ALIGNED_BUFFER free
 #elif __SSE__
 // allocate memory aligned to 16-bytes memory boundary
 #define ALLOC_ALIGNED_BUFFER(_numBytes) (float *) _mm_malloc(_numBytes, 16)

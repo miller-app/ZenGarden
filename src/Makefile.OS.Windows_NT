@@ -1,0 +1,4 @@
+PLATFORM_TARGETS=libzengarden libzengarden-static
+CXXFLAGS = -O3 -lpthread -std=gnu++11 -Wall -I$(my-dir)
+MAKE_SO=$(CC) -o $(1) $(CXXFLAGS) -shared $(2) $(3) -lstdc++ -lregex
+SO_EXTENSION=so

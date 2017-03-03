@@ -23,11 +23,17 @@
 #ifndef _PD_MESSAGE_H_
 #define _PD_MESSAGE_H_
 
-#include <alloca.h>
+#ifdef _WIN32
+  #include <malloc.h>
+#else
+  #include <alloca.h>
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "MessageElementType.h"
 
 #define PD_MESSAGE_ON_STACK(_x) ((PdMessage *) alloca(PdMessage::numBytes(_x)));

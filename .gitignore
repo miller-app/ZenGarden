@@ -1,6 +1,10 @@
 *.o
 *.o.d
+*.obj
 *.class
+*.pcb
+.vs/*
+Debug/
 libs/Darwin-i386/*.dSYM
 .DS_Store
 bin
