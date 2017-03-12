@@ -9,8 +9,11 @@ OBJS := $(foreach FILE,$(LOCAL_SRC_FILES),$(FILE:.cpp=.o))
 SNDFILE_INCLUDE = `pkg-config --cflags sndfile`
 SNDFILE_LIB = `pkg-config --libs sndfile`
 
-# -g
-CXXFLAGS = -O3 -fPIC -std=c++11 -Wall -I$(my-dir) $(SNDFILE_INCLUDE)
+ifeq ($(DEBUG), 1)
+	CXXFLAGS = -g -ggdb -fPIC -std=c++11 -Wall -I$(my-dir) $(SNDFILE_INCLUDE)
+else
+	CXXFLAGS = -O3 -fPIC -std=c++11 -Wall -I$(my-dir) $(SNDFILE_INCLUDE)
+endif
 
 # figure out what platform we're on
 
