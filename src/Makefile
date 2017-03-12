@@ -67,4 +67,7 @@ java-jar: ../ZenGarden.jar
 	jar cfm ../ZenGarden.jar me/rjdj/zengarden/manifest me/rjdj/zengarden/*.class
 	cd ../test && jar uf ../ZenGarden.jar me/rjdj/zengarden/*.class
 
+demo: libzengarden
+	g++ $(CXXFLAGS) main.cpp ../libs/$(OS)/libzengarden.a $(SNDFILE_LIB) -pthread -o demo
+
 endif
