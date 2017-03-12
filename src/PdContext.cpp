@@ -70,7 +70,7 @@ PdContext::PdContext(int numInputChannels, int numOutputChannels, int blockSize,
 
   abstractionDatabase = new PdAbstractionDataBase();
 
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
+#ifndef EMSCRIPTEN
   // configure the context lock, which is recursive
   pthread_mutexattr_t mta;
   pthread_mutexattr_init(&mta);
@@ -95,7 +95,7 @@ PdContext::~PdContext() {
 
   delete abstractionDatabase;
 
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
+#ifndef EMSCRIPTEN
   pthread_mutex_destroy(&contextLock);
 #endif
 }

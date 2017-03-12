@@ -87,7 +87,7 @@
 #include "MessageSelect.h"
 #include "MessageSend.h"
 #include "MessageSine.h"
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
+#ifndef EMSCRIPTEN
 #include "MessageSoundfiler.h"
 #endif
 #include "MessageSpigot.h"
@@ -229,7 +229,7 @@ ObjectFactoryMap::ObjectFactoryMap() {
   objectFactoryMap[string(MessageSend::getObjectLabel())] = &MessageSend::newObject;
   objectFactoryMap[string("s")] = &MessageSend::newObject;
   objectFactoryMap[string(MessageSine::getObjectLabel())] = &MessageSine::newObject;
-  #if !defined(EMSCRIPTEN) && !defined(_WIN32)
+  #ifndef EMSCRIPTEN
   objectFactoryMap[string(MessageSoundfiler::getObjectLabel())] = &MessageSoundfiler::newObject;
   #endif
   objectFactoryMap[string(MessageSpigot::getObjectLabel())] = &MessageSpigot::newObject;

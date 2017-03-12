@@ -24,7 +24,7 @@
 #define _PD_CONTEXT_H_
 
 #include <map>
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
+#ifndef EMSCRIPTEN
 #include <pthread.h>
 #endif
 #include "OrderedMessageQueue.h"
@@ -73,13 +73,13 @@ class PdContext {
     void process(float *inputBuffers, float *outputBuffers);
   
     void lock() {
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
+#ifndef EMSCRIPTEN
         pthread_mutex_lock(&contextLock);
 #endif
     }
     void unlock() {
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
-		pthread_mutex_unlock(&contextLock);
+#ifndef EMSCRIPTEN
+        pthread_mutex_unlock(&contextLock);
 #endif
     }
   
@@ -240,8 +240,8 @@ class PdContext {
     /** A list of all top-level graphs in this context. */
     vector<PdGraph *> graphList;
 
-#if !defined(EMSCRIPTEN) && !defined(_WIN32)
-	/** A thread lock used to access critical sections of this context. */
+ #ifndef EMSCRIPTEN 
+    /** A thread lock used to access critical sections of this context. */
     pthread_mutex_t contextLock;
 #endif
 

@@ -145,7 +145,5 @@ LOCAL_SRC_FILES := \
 ./ZenGarden.cpp
 
 ifneq ($(OS),Emscripten)
-	ifneq ($(OS),Windows_NT)
-		LOCAL_SRC_FILES += ./MessageSoundfiler.cpp
-	endif
+	LOCAL_SRC_FILES += ./MessageSoundfiler.cpp
 endif
