@@ -80,6 +80,11 @@ void MessageSendController::sendMessage(int outletIndex, PdMessage *message) {
 
 void MessageSendController::addReceiver(RemoteMessageReceiver *receiver) {
   int nameIndex = getNameIndex(receiver->getName());
+  if (nameIndex == SYSTEM_NAME_INDEX) {
+    // TODO: Enable receiving messages from "pd"
+    return;
+  }
+
   if (nameIndex == -1) {
     set<RemoteMessageReceiver *> remoteSet = set<RemoteMessageReceiver *>();
     remoteSet.insert(receiver);
