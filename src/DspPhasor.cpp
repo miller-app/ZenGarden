@@ -36,6 +36,10 @@ DspPhasor::DspPhasor(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0
 
   processFunction = &processScalar;
   processFunctionNoMessage = &processScalar;
+
+#ifndef __SSE3__
+  offset = 0.0f;
+#endif
 }
 
 DspPhasor::~DspPhasor() {
