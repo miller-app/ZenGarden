@@ -26,7 +26,7 @@
 
 #include "ZenGarden.h"
 
-#define NUM_ITERATIONS 9999985
+#define NUM_ITERATIONS 9999
 
 extern "C" {
   void *callbackFunction(ZGCallbackFunction function, void *userData, void *ptr) {
@@ -73,7 +73,6 @@ int main(int argc, char * const argv[]) {
   timeval start, end;
   gettimeofday(&start, NULL);
   for (int i = 0; i < NUM_ITERATIONS; i++) {
-  //while (1) {
     zg_context_process(context, inputBuffers, outputBuffers);
   }
   gettimeofday(&end, NULL);

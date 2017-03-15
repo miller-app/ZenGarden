@@ -56,5 +56,7 @@ void DspReceive::processMessage(int inletIndex, PdMessage *message) {
 
 void DspReceive::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
   DspReceive *d = reinterpret_cast<DspReceive *>(dspObject);
-  memcpy(d->dspBufferAtOutlet[0], d->dspBufferAtInlet[0], toIndex*sizeof(float));
+  if (d->dspBufferAtOutlet[0] != NULL && d->dspBufferAtInlet[0] != NULL) {
+    memcpy(d->dspBufferAtOutlet[0], d->dspBufferAtInlet[0], toIndex*sizeof(float));
+  }
 }
