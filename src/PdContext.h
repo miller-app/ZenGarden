@@ -99,7 +99,7 @@ class PdContext {
     DspSend *getDspSend(const char *name);
   
     /** Updates the input buffers all attached objects to the DspReceives associated with the given DspSend. */
-    void updateDspReceiveForSendWitBuffer(const char *name, float *buffer);
+    void updateDspReceiveForSendWithBuffer(const char *name, float *buffer);
     
     /**
      * Globally register a [delwrite~] object. Registration is necessary such that they can

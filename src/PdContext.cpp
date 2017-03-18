@@ -288,7 +288,7 @@ void PdContext::registerDspReceive(DspReceive *dspReceive) {
   // connect receive~ to associated send~
   DspSend *dspSend = getDspSend(dspReceive->getName());
   if (dspSend != NULL) {
-    dspReceive->setDspBufferAtInlet(dspSend->getDspBufferAtInlet(0), 0);
+    dspReceive->setDspBufferAtInlet(dspSend->getDspBufferAtOutlet(0), 0);
   }
 }
 
@@ -307,14 +307,14 @@ void PdContext::registerDspSend(DspSend *dspSend) {
   dspSendList.push_back(dspSend);
   
   // connect associated receive~s to send~.
-  updateDspReceiveForSendWitBuffer(dspSend->getName(), dspSend->getDspBufferAtOutlet(0));
+  updateDspReceiveForSendWithBuffer(dspSend->getName(), dspSend->getDspBufferAtOutlet(0));
 }
 
 void PdContext::unregisterDspSend(DspSend *dspSend) {
   dspSendList.remove(dspSend);
   
   // inform all previously connected receive~s that the send~ buffer does not exist anymore.
-  updateDspReceiveForSendWitBuffer(dspSend->getName(), dspSend->getGraph()->getBufferPool()->getZeroBuffer());
+  updateDspReceiveForSendWithBuffer(dspSend->getName(), dspSend->getGraph()->getBufferPool()->getZeroBuffer());
 }
 
 DspSend *PdContext::getDspSend(const char *name) {
@@ -324,7 +324,7 @@ DspSend *PdContext::getDspSend(const char *name) {
   return NULL;
 }
 
-void PdContext::updateDspReceiveForSendWitBuffer(const char *name, float *buffer) {
+void PdContext::updateDspReceiveForSendWithBuffer(const char *name, float *buffer) {
   list<DspReceive *> receiveList = dspReceiveMap[string(name)];
   for (list<DspReceive *>::iterator it = receiveList.begin(); it != receiveList.end(); ++it) {
     DspReceive *dspReceive = *it;
