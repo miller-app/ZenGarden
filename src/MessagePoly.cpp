@@ -48,6 +48,9 @@ void MessagePoly::processMessage(int inletIndex, PdMessage *message) {
   switch (inletIndex) {
     case 0:
       if (message->isFloat(0)) {
+        if (message->isFloat(1)) {
+          velocity = message->getFloat(1);
+        }
         // Translated from https://github.com/pure-data/pure-data/blob/master/src/x_midi.c
         float val = message->getFloat(0);
         Voice *firstOn = nullptr;
