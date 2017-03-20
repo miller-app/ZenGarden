@@ -38,6 +38,7 @@ DspThrow::DspThrow(PdMessage *initMessage, PdGraph *graph) : DspObject(0, 1, 0, 
     graph->printErr("throw~ may not be initialised without a name. \"set\" message not supported.");
   }
   processFunction = &processSignal;
+  processFunctionNoMessage = &processSignal;
 }
 
 DspThrow::~DspThrow() {
@@ -53,7 +54,7 @@ void DspThrow::processMessage(int inletIndex, PdMessage *message) {
 
 void DspThrow::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
   DspThrow *d = reinterpret_cast<DspThrow *>(dspObject);
-  memcpy(d->buffer, d->dspBufferAtInlet[0], toIndex*sizeof(float));
+  memcpy(d->buffer, d->dspBufferAtInlet[0], toIndex * sizeof(float));
 }
 
 bool DspThrow::isLeafNode() {

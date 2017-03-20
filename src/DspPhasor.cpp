@@ -22,6 +22,7 @@
 
 #include "DspPhasor.h"
 #include "PdGraph.h"
+#include <cmath>
 
 #define SHORT_TO_FLOAT_RATIO 0.0000152590219f // == 1/(2^16 - 1)
 
@@ -39,6 +40,7 @@ DspPhasor::DspPhasor(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0
 
 #ifndef __SSE3__
   offset = 0.0f;
+  inc = 440.0f / graph->getSampleRate();
 #endif
 }
 
@@ -119,8 +121,18 @@ void DspPhasor::processSignal(DspObject *dspObject, int fromIndex, int n4) {
   for (int i = fromIndex; i < n4; i++) {
     inc = input[i] / sampleRate;
     output[i] = offset;
-    offset = offset + inc;
+    offset += inc;
     offset -= (long)offset; // Get fractional part
+  }
+
+  // We may get garbage data for a frame, don't let that ruin our internal
+  // state
+  if (isnan(inc)) {
+    inc = 440.0f / d->graph->getSampleRate();
+  }
+
+  if (isnan(offset)) {
+    offset = 0.0f;
   }
 
   d->inc = inc;

@@ -44,11 +44,11 @@ void DspFilter::processFilter(DspObject *dspObject, int fromIndex, int toIndex) 
   DspFilter *d = reinterpret_cast<DspFilter *>(dspObject);
   
   int n = toIndex - fromIndex; // number of samples to process
-  float bufferIn[n+2]; // new inlet buffer
+  float *bufferIn = new float[n + 2]; // new inlet buffer
   bufferIn[0] = d->x2; bufferIn[1] = d->x1;
   memcpy(bufferIn+2, d->dspBufferAtInlet[0]+fromIndex, n*sizeof(float));
   
-  float bufferOut[n+2]; // new outlet buffer
+  float *bufferOut = new float[n + 2]; // new outlet buffer
   bufferOut[0] = d->y2; bufferOut[1] = d->y1;
   
   #if __APPLE__
@@ -66,4 +66,7 @@ void DspFilter::processFilter(DspObject *dspObject, int fromIndex, int toIndex) 
   // retain state
   d->x2 = bufferIn[n]; d->x1 = bufferIn[n+1];
   d->y2 = bufferOut[n]; d->y1 = bufferOut[n+1];
+
+  delete[] bufferIn;
+  delete[] bufferOut;
 }
