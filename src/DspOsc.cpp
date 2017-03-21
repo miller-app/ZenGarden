@@ -22,54 +22,9 @@
 
 #include "DspOsc.h"
 #include "PdGraph.h"
+#include <cmath>
 
-/*
- * This code makes use of selections from Pure Data source.
- * See https://github.com/pure-data/pure-data/blob/master/LICENSE.txt.
- *
- * Copyright (c) 1997-1999 Miller Puckette.
- */
-
-#define COSTABSIZE 32768
-#define UNITBIT32 1572864.  /* 3*2^19; bit 32 has place value 1 */
-
-#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__FreeBSD_kernel__) \
-    || defined(__OpenBSD__)
-#include <machine/endian.h>
-#endif
-
-#if defined(__linux__) || defined(__CYGWIN__) || defined(__GNU__) || \
-    defined(ANDROID) || defined(EMSCRIPTEN)
-#include <endian.h>
-#endif
-
-#ifdef __MINGW32__
-#include <sys/param.h>
-#endif
-
-#ifdef _MSC_VER
-/* _MSVC lacks BYTE_ORDER and LITTLE_ENDIAN */
-#define LITTLE_ENDIAN 0x0001
-#define BYTE_ORDER LITTLE_ENDIAN
-#endif
-
-#if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN)
-#error No byte order defined
-#endif
-
-#if BYTE_ORDER == LITTLE_ENDIAN
-# define HIOFFSET 1
-# define LOWOFFSET 0
-#else
-# define HIOFFSET 0    /* word offset to find MSB */
-# define LOWOFFSET 1    /* word offset to find LSB */
-#endif
-
-union tabfudge
-{
-    double tf_d;
-    int32_t tf_i[2];
-};
+#define COS_TABLE_SIZE 32768
 
 // initialise the static class variables
 float *DspOsc::cos_table = NULL;
@@ -81,13 +36,13 @@ MessageObject *DspOsc::newObject(PdMessage *initMessage, PdGraph *graph) {
 
 DspOsc::DspOsc(PdMessage *initMessage, PdGraph *graph) : DspObject(2, 2, 0, 1, graph) {
   frequency = initMessage->isFloat(0) ? initMessage->getFloat(0) : 440.0f;
-  phase = 0.0;
+  phase = 0.0f;
   refCount++;
 
   if (cos_table == NULL) {
-    cos_table = ALLOC_ALIGNED_BUFFER(COSTABSIZE * sizeof(float));
-    for (int i = 0; i < COSTABSIZE; i++) {
-      cos_table[i] = cosf(2.0f * M_PI * ((float) i) / COSTABSIZE);
+    cos_table = ALLOC_ALIGNED_BUFFER(COS_TABLE_SIZE * sizeof(float));
+    for (int i = 0; i < COS_TABLE_SIZE; i++) {
+      cos_table[i] = cosf(2.0f * M_PI * ((float) i) / (COS_TABLE_SIZE - 1));
     }
   }
   
@@ -128,61 +83,43 @@ void DspOsc::processMessage(int inletIndex, PdMessage *message) {
 }
 
 void DspOsc::processSignal(DspObject *dspObject, int fromIndex, int toIndex) {
-    DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
-    float multiplier = (float)COSTABSIZE / d->graph->getSampleRate();
-    float *input = d->dspBufferAtInlet[0];
-    float *output = d->dspBufferAtOutlet[0];
-    double phase = (double)d->phase + UNITBIT32;
-    int normhipart;
-    union tabfudge tf;
+  DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
+  float tableSizeFloat = (float)(COS_TABLE_SIZE - 1);
+  float multiplier = tableSizeFloat / d->graph->getSampleRate();
+  float *input = d->dspBufferAtInlet[0];
+  float *output = d->dspBufferAtOutlet[0];
+  float phase = d->phase;
 
-    tf.tf_d = UNITBIT32;
-    normhipart = tf.tf_i[HIOFFSET];
+  for (int i = fromIndex; i < toIndex; i++) {
+    unsigned int lower = (unsigned int)phase;
+    float fraction = phase - lower;
+    float out = fraction * cos_table[lower] + (1.0f - fraction) * cos_table[lower + 1];
+    output[i] = out;
+    phase = fmod(phase + input[i] * multiplier, tableSizeFloat);
+  }
 
-    for (int i = fromIndex; i < toIndex; i++) {
-        tf.tf_d = phase;
-        phase += input[i] * multiplier;
-        float *addr = DspOsc::cos_table + (tf.tf_i[HIOFFSET] & (COSTABSIZE - 1));
-        tf.tf_i[HIOFFSET] = normhipart;
-        float frac = tf.tf_d - UNITBIT32;
-        float f1 = addr[0];
-        float f2 = addr[1];
-        output[i] = f1 + frac * (f2 - f1);
-    }
+  if (isnan(phase)) {
+    phase = 0.0f;
+  }
 
-    tf.tf_d = UNITBIT32 * COSTABSIZE;
-    normhipart = tf.tf_i[HIOFFSET];
-    tf.tf_d = phase + (UNITBIT32 * COSTABSIZE - UNITBIT32);
-    tf.tf_i[HIOFFSET] = normhipart;
-    d->phase = tf.tf_d - UNITBIT32 * COSTABSIZE;
+  d->phase = phase;
 }
 
 void DspOsc::processScalar(DspObject *dspObject, int fromIndex, int toIndex) {
   DspOsc *d = reinterpret_cast<DspOsc *>(dspObject);
-  float multiplier = (float)COSTABSIZE / d->graph->getSampleRate();
-  float *output = d->dspBufferAtOutlet[0]+fromIndex;
-  double frequency = d->frequency;
-  double phase = (double)d->phase + UNITBIT32;
-  int normhipart;
-  union tabfudge tf;
-
-  tf.tf_d = UNITBIT32;
-  normhipart = tf.tf_i[HIOFFSET];
+  float tableSizeFloat = (float)(COS_TABLE_SIZE - 1);
+  float multiplier = tableSizeFloat / d->graph->getSampleRate();
+  float phase = d->phase;
+  float addend = multiplier * d->frequency;
+  float *output = d->dspBufferAtOutlet[0];
 
   for (int i = fromIndex; i < toIndex; i++) {
-      tf.tf_d = phase;
-      phase += frequency * multiplier;
-      float *addr = DspOsc::cos_table + (tf.tf_i[HIOFFSET] & (COSTABSIZE - 1));
-      tf.tf_i[HIOFFSET] = normhipart;
-      float frac = tf.tf_d - UNITBIT32;
-      float f1 = addr[0];
-      float f2 = addr[1];
-      output[i] = f1 + frac * (f2 - f1);
+    unsigned int lower = (unsigned int)phase;
+    float fraction = phase - lower;
+    float out = fraction * cos_table[lower] + (1.0f - fraction) * cos_table[lower + 1];
+    output[i] = out;
+    phase = fmod(phase + addend, tableSizeFloat);
   }
 
-  tf.tf_d = UNITBIT32 * COSTABSIZE;
-  normhipart = tf.tf_i[HIOFFSET];
-  tf.tf_d = phase + (UNITBIT32 * COSTABSIZE - UNITBIT32);
-  tf.tf_i[HIOFFSET] = normhipart;
-  d->phase = tf.tf_d - UNITBIT32 * COSTABSIZE;
+  d->phase = phase;
 }

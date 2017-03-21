@@ -44,7 +44,7 @@ class DspOsc : public DspObject {
     void processMessage(int inletIndex, PdMessage *message);
   
     float frequency;
-    double phase;
+    float phase;
   
     static float *cos_table; // the cosine lookup table
     static int refCount; // a reference counter for cos_table. Now we know when to free it.
