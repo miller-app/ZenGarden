@@ -26,7 +26,12 @@
 #include <list>
 #include <string>
 #include <vector>
+#ifdef _WIN32
+#define _USE_MATH_DEFINES
+#include <cmath>
+#else
 #include <math.h>
+#endif
 #include "ConnectionType.h"
 #include "ObjectType.h"
 #include "PdMessage.h"
