@@ -27,8 +27,6 @@
 #include "MessageTable.h"
 #include "MessageText.h"
 #include "PdAbstractionDataBase.h"
-#include "PdContext.h"
-#include "PdGraph.h"
 
 PdFileParser::PdFileParser(string directory, string filename) {
     rootPath = string(directory);
