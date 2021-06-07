@@ -41,8 +41,8 @@ ZGObject *zg_graph_add_new_object(PdGraph *graph, const char *objectString,
                                   float canvasX, float canvasY) {
     char *objectStringCopy = StaticUtils::copyString(objectString);
     char *saveptr;
-    char *objectLabel = strtok_r(objectStringCopy, " ;", saveptr);
-    char *initString = strtok_r(NULL, ";", saveptr);
+    char *objectLabel = strtok_r(objectStringCopy, " ;", &saveptr);
+    char *initString = strtok_r(NULL, ";", &saveptr);
     char resolutionBuffer[256];
     PdMessage *initMessage = PD_MESSAGE_ON_STACK(32);
     initMessage->initWithSARb(32, initString, graph->getArguments(),
