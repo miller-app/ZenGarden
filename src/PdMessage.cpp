@@ -44,7 +44,8 @@ void PdMessage::initWithString(double ts, unsigned int maxElements,
         unsigned int i = 0;
         do {
             parseAndSetMessageElement(i++, token);
-        } while (((token = strtok_r(NULL, " ;", saveptr)) != NULL) && (i < maxElements));
+        } while (((token = strtok_r(NULL, " ;", saveptr)) != NULL) &&
+                 (i < maxElements));
 
         numElements = i;
     }
